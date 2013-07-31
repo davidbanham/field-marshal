@@ -27,6 +27,7 @@
   "dependencies": {
     "coffee-script": "~1.6.3",
     "level": "~0.10.0",
-    "ws": "~0.4.27"
+    "ws": "~0.4.27",
+    "request": "~2.25.0"
   }
 }
