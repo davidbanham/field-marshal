@@ -2,6 +2,12 @@ model = require '../lib/model.coffee'
 request = require 'request'
 SECRET = process.env.CAVALRYPASS or "testingpass"
 
+parseJSON = (str) ->
+  try
+    str = JSON.parse str
+  catch err
+  return str
+
 Cavalry = ->
   @postJSON = (arg, slave, opts, cb) ->
     url = "http://#{model.slaves[slave].ip}:3000/#{arg}"
@@ -12,6 +18,7 @@ Cavalry = ->
         pass: SECRET
       url: url
     , (error, response, body) ->
+      body = parseJSON body
       cb error, body
   @spawn = (slave, opts, cb) =>
     @postJSON "spawn", slave, opts, cb
