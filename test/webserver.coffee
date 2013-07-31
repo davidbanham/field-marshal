@@ -1,6 +1,5 @@
 assert = require 'assert'
 request = require 'request'
-http = require 'http'
 webserver = require "../lib/webserver.coffee"
 model = require("../lib/model.coffee")
 model.ttl = 5
