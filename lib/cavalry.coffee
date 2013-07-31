@@ -30,6 +30,16 @@ Cavalry = ->
     @postJSON "fetch", slave, opts, cb
   @deploy = (slave, opts, cb) =>
     @postJSON "deploy", slave, opts, cb
+  @ps = (slave, cb) ->
+    url = "http://#{model.slaves[slave].ip}:3000/ps"
+    request.get
+      url: url
+      auth:
+        user: "master"
+        pass: "secret"
+    , (error, response, body) ->
+      body = parseJSON body
+      cb error, body
 
   return this
 

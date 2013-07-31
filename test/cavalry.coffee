@@ -43,3 +43,20 @@ describe "cavalry", ->
       assert.equal err, null
       assert.deepEqual procs, { somePID: { id: "somePID", status: "running" } }
       done()
+  it "should fetch a ps object", (done) ->
+    server.on "request", (req, res) ->
+      res.end JSON.stringify
+        id: 'someID'
+        status: 'running'
+        repo: 'reponame'
+        commit: 'commitid'
+        cwd: '/dev/null'
+        drone: 'testDrone'
+    cavalry.ps 'cavalry-us', (err, procs) ->
+      done assert.deepEqual procs,
+        id: 'someID'
+        status: 'running'
+        repo: 'reponame'
+        commit: 'commitid'
+        cwd: '/dev/null'
+        drone: 'testDrone'
