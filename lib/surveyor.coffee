@@ -1,5 +1,7 @@
 fs = require 'fs'
 path = require 'path'
+model = require '../lib/model.coffee'
+cavalry = require '../lib/cavalry.coffee'
 
 manifestDir = path.resolve __dirname, '..', 'manifest'
 Surveyor = ->
@@ -21,6 +23,19 @@ Surveyor = ->
               manifest[name] = data
             parts--
             cb errs, manifest if parts is 0
+  @ps = (cb) ->
+    ps = {}
+    errs = []
+    jobs = 0
+    for slave of model.slaves
+      jobs++
+      do (slave) ->
+        cavalry.ps slave, (err, procs) ->
+          errs.push err if err?
+          ps[slave] = procs
+          jobs--
+          cb errs, ps if jobs is 0
+
   return this
 
 surveyor = new Surveyor()

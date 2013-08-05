@@ -1,6 +1,10 @@
 assert = require 'assert'
 surveyor = require '../lib/surveyor'
+model = require '../lib/model'
 fs = require 'fs'
+http = require 'http'
+server = http.createServer()
+
 describe "surveyor.getManifest", ->
   before ->
     fs.writeFileSync './manifest/test_1.json', JSON.stringify
@@ -33,9 +37,31 @@ describe "surveyor.getManifest", ->
         if error.file is "test_malformed.json"
           done() if error.error.type is "unexpected_token"
 describe "surveyor", ->
-  it 'should ps all drones', ->
-    assert false
-  it 'should identify required processes', ->
+  beforeEach ->
+    server.listen 3000
+  afterEach ->
+    server.removeAllListeners "request"
+    server.close()
+  it 'should ps all drones', (done) ->
+    rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    rand2 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    model.slaves[rand1] = { ip: '127.0.0.1' }
+    model.slaves[rand2] = { ip: '127.0.0.1' }
+    server.on "request", (req, res) ->
+      res.end JSON.stringify
+        someID:
+          id: 'someID'
+          status: 'running'
+          repo: 'reponame'
+          commit: 'commitid'
+          cwd: '/dev/null'
+          drone: 'testDrone'
+    surveyor.ps (err, procs) ->
+      assert.equal procs[rand1].someID.status, "running"
+      assert.equal procs[rand2].someID.status, "running"
+      done()
+
+  it.only 'should identify required processes', ->
     assert false
   it 'should find the least loaded slave', ->
     assert false
