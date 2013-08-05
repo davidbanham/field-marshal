@@ -46,13 +46,13 @@ Surveyor = ->
         for slave, slaveData of model.slaves
           present = false
           for pid, procData of slaveData.processes
-            present = true if procData.repo is repo and procData.status is 'running' and procData.commit is repoData.commit
+            present = true if procData.repo is repo and procData.status is 'running' and procData.commit is repoData.opts.commit
           required.push slave unless present
       else
         running = 0
         for slave, slaveData of model.slaves
           for pid, procData of slaveData.processes
-            running++ if procData.repo is repo and procData.status is 'running' and procData.commit is repoData.commit
+            running++ if procData.repo is repo and procData.status is 'running' and procData.commit is repoData.opts.commit
         repoData.delta = repoData.instances - running
     cb()
 

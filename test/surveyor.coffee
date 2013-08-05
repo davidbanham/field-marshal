@@ -86,10 +86,12 @@ describe "surveyor", ->
     model.manifest =
       a:
         instances: '*'
-        commit: '1'
+        opts:
+          commit: '1'
       b:
         instances: 3
-        commit: '2'
+        opts:
+          commit: '2'
     surveyor.buildRequired ->
       assert.deepEqual model.manifest.a.required, [rand2]
       assert.equal model.manifest.b.delta, 1
