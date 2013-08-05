@@ -46,17 +46,19 @@ describe "cavalry", ->
   it "should fetch a ps object", (done) ->
     server.on "request", (req, res) ->
       res.end JSON.stringify
-        id: 'someID'
-        status: 'running'
-        repo: 'reponame'
-        commit: 'commitid'
-        cwd: '/dev/null'
-        drone: 'testDrone'
+        someID:
+          id: 'someID'
+          status: 'running'
+          repo: 'reponame'
+          commit: 'commitid'
+          cwd: '/dev/null'
+          drone: 'testDrone'
     cavalry.ps 'cavalry-us', (err, procs) ->
       done assert.deepEqual procs,
-        id: 'someID'
-        status: 'running'
-        repo: 'reponame'
-        commit: 'commitid'
-        cwd: '/dev/null'
-        drone: 'testDrone'
+        someID:
+          id: 'someID'
+          status: 'running'
+          repo: 'reponame'
+          commit: 'commitid'
+          cwd: '/dev/null'
+          drone: 'testDrone'
