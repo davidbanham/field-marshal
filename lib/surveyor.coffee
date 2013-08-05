@@ -39,6 +39,22 @@ Surveyor = ->
           ps[slave] = procs
           jobs--
           cb errs, ps if jobs is 0
+  @buildRequired = (cb) ->
+    for repo, repoData of model.manifest
+      if repoData.instances is '*'
+        required = repoData.required = []
+        for slave, slaveData of model.slaves
+          present = false
+          for pid, procData of slaveData.processes
+            present = true if procData.repo is repo and procData.status is 'running' and procData.commit is repoData.commit
+          required.push slave unless present
+      else
+        running = 0
+        for slave, slaveData of model.slaves
+          for pid, procData of slaveData.processes
+            running++ if procData.repo is repo and procData.status is 'running' and procData.commit is repoData.commit
+        repoData.delta = repoData.instances - running
+    cb()
 
   return this
 

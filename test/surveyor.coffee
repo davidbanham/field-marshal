@@ -40,6 +40,8 @@ describe "surveyor.getManifest", ->
 describe "surveyor", ->
   beforeEach ->
     server.listen 3000
+    model.slaves = {}
+    model.manifest = {}
   afterEach ->
     server.removeAllListeners "request"
     server.close()
@@ -62,8 +64,36 @@ describe "surveyor", ->
       assert.equal procs[rand2].someID.status, "running"
       done()
 
-  it.only 'should identify required processes', ->
-    assert false
+  it 'should identify required processes', (done) ->
+    rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    rand2 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    model.slaves[rand1] =
+      processes:
+        one:
+          status: 'running'
+          commit: '1'
+          repo: 'a'
+        two:
+          status: 'running'
+          commit: '2'
+          repo: 'b'
+    model.slaves[rand2] =
+      processes:
+        two:
+          status: 'running'
+          commit: '2'
+          repo: 'b'
+    model.manifest =
+      a:
+        instances: '*'
+        commit: '1'
+      b:
+        instances: 3
+        commit: '2'
+    surveyor.buildRequired ->
+      assert.deepEqual model.manifest.a.required, [rand2]
+      assert.equal model.manifest.b.delta, 1
+      done()
   it 'should find the least loaded slave', ->
     assert false
   it 'should populate env variables', ->
