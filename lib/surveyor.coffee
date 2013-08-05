@@ -8,7 +8,7 @@ Surveyor = ->
   @getManifest = (cb) ->
     manifest = {}
     fs.readdir manifestDir, (err, files) ->
-      errs = []
+      errs = null
       parts = 0
       for file in files
         parts++
@@ -17,12 +17,16 @@ Surveyor = ->
             try
               parsed = JSON.parse data
             catch e
+              errs = [] if !errs?
               errs.push {file: file, error: e}
             for name, data of parsed
-              errs.push "#{name} is duplicated" if manifest[name]?
+              if manifest[name]?
+                errs = [] if !errs?
+                errs.push "#{name} is duplicated"
               manifest[name] = data
             parts--
-            cb errs, manifest if parts is 0
+            model.manifest = manifest
+            cb errs if parts is 0
   @ps = (cb) ->
     ps = {}
     errs = []
