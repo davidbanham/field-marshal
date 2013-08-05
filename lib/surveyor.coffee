@@ -55,6 +55,40 @@ Surveyor = ->
             running++ if procData.repo is repo and procData.status is 'running' and procData.commit is repoData.opts.commit
         repoData.delta = repoData.instances - running
     cb()
+  @sortSlaves = ->
+    ([k, v.load] for k, v of model.slaves).sort (a,b) ->
+      a[1] - b[1]
+    .map (n) -> n[0]
+  @spawnMissing = (cb) =>
+    errs = null
+    procs = {}
+    numProcs = 0
+    checkDone = (slave, err, proc) ->
+      numProcs--
+      if err?
+        errs = [] if !errs?
+        errs.push {slave: slave, err: err}
+      else
+        for pid, data of proc
+          procs[pid] = data
+      cb errs, procs if numProcs is 0
+
+    for repo, repoData of model.manifest
+      if repoData.required?
+        numProcs += repoData.required.length
+        for slave in repoData.required
+          do (slave) ->
+            cavalry.spawn slave, repoData.opts, (err, res) ->
+              checkDone slave, err, res
+      else if repoData.delta > 0
+        numProcs += repoData.delta
+        while repoData.delta > 0
+          target = @sortSlaves()[0]
+          target.load += repoData.load
+          repoData.delta--
+          do (target) ->
+            cavalry.spawn target, repoData.opts, (err, res) ->
+              checkDone target, err, res
 
   return this
 
