@@ -40,6 +40,8 @@ Cavalry = ->
     @postJSON "fetch", slave, opts, cb
   @deploy = (slave, opts, cb) =>
     @postJSON "deploy", slave, opts, cb
+  @port = (slave, cb) =>
+    @getJSON "port", slave, cb
   @ps = (slave, cb) ->
     @getJSON "ps", slave, cb
 

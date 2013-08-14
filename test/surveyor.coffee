@@ -109,8 +109,19 @@ describe "surveyor", ->
     slaves = surveyor.sortSlaves()
     assert.equal slaves[0], 'low'
     assert.equal slaves[slaves.length - 1], 'high'
-  it 'should populate env variables', ->
-    assert false
+  it 'should populate env variables', (done) ->
+    rand = Math.floor(Math.random() * (1 << 24)).toString(16)
+    server.on "request", (req, res) ->
+      res.write JSON.stringify
+        port: rand
+      res.end()
+    opts =
+      port: "RANDOM_PORT"
+    model.slaves.portTest = { ip: '127.0.0.1' }
+    surveyor.populateOptions "portTest", opts, (err, opts) ->
+      assert.equal null, err
+      assert.equal opts.port, rand
+      done()
   it 'should spawn required processes', (done) ->
     model.manifest =
       one:

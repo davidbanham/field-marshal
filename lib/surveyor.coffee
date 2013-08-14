@@ -59,6 +59,23 @@ Surveyor = ->
     ([k, v.load] for k, v of model.slaves).sort (a,b) ->
       a[1] - b[1]
     .map (n) -> n[0]
+  @populateOptions = (slave, opts, cb) ->
+    opts = JSON.parse JSON.stringify opts
+    required = {}
+    errs = null
+    required.port = true if opts.port is "RANDOM_PORT"
+    checkDone = ->
+      cb errs, opts if Object.keys(required).length is 0
+    checkDone()
+    if required.port
+      cavalry.port slave, (err, res) ->
+        if err?
+          errs = [] if !errs?
+          errs.push {slave: slave, err: err}
+        opts.port = res.port
+        delete required.port
+        checkDone()
+
   @spawnMissing = (cb) =>
     errs = null
     procs = {}
