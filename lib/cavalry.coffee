@@ -20,6 +20,16 @@ Cavalry = ->
     , (error, response, body) ->
       body = parseJSON body
       cb error, body
+  @getJSON = (arg, slave, cb) ->
+    url = "http://#{model.slaves[slave].ip}:3000/#{arg}"
+    request.get
+      url: url
+      auth:
+        user: "master"
+        pass: SECRET
+    , (error, response, body) ->
+      body = parseJSON body
+      cb error, body
   @spawn = (slave, opts, cb) =>
     @postJSON "spawn", slave, opts, cb
   @stop = (slave, opts, cb) =>
@@ -31,15 +41,7 @@ Cavalry = ->
   @deploy = (slave, opts, cb) =>
     @postJSON "deploy", slave, opts, cb
   @ps = (slave, cb) ->
-    url = "http://#{model.slaves[slave].ip}:3000/ps"
-    request.get
-      url: url
-      auth:
-        user: "master"
-        pass: "secret"
-    , (error, response, body) ->
-      body = parseJSON body
-      cb error, body
+    @getJSON "ps", slave, cb
 
   return this
 
