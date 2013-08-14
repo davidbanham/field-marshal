@@ -94,9 +94,11 @@ Surveyor = ->
       if repoData.required?
         numProcs += repoData.required.length
         for slave in repoData.required
-          do (slave) ->
-            cavalry.spawn slave, repoData.opts, (err, res) ->
-              checkDone slave, err, res
+          do (slave) =>
+            @populateOptions slave, repoData.opts, (err, opts) ->
+              return checkDone slave, err, null if err?
+              cavalry.spawn slave, repoData.opts, (err, res) ->
+                checkDone slave, err, res
       else if repoData.delta > 0
         numProcs += repoData.delta
         while repoData.delta > 0
