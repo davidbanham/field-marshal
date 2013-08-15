@@ -95,19 +95,20 @@ Surveyor = ->
         numProcs += repoData.required.length
         for slave in repoData.required
           do (slave) =>
-            @populateOptions slave, repoData.opts, (err, opts) ->
-              return checkDone slave, err, null if err?
-              cavalry.spawn slave, repoData.opts, (err, res) ->
-                checkDone slave, err, res
+            @spawn slave, repoData.opts, checkDone
       else if repoData.delta > 0
         numProcs += repoData.delta
         while repoData.delta > 0
           target = @sortSlaves()[0]
           target.load += repoData.load
           repoData.delta--
-          do (target) ->
-            cavalry.spawn target, repoData.opts, (err, res) ->
-              checkDone target, err, res
+          do (target) =>
+            @spawn target, repoData.opts, checkDone
+  @spawn = (slave, opts, cb) ->
+    @populateOptions slave, opts, (err, opts) ->
+      return checkDone slave, err, null if err?
+      cavalry.spawn slave, opts, (err, res) ->
+        cb slave, err, res
 
   return this
 
