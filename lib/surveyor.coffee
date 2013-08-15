@@ -63,7 +63,7 @@ Surveyor = ->
     opts = JSON.parse JSON.stringify opts
     required = {}
     errs = null
-    required.port = true if opts.port is "RANDOM_PORT"
+    required.port = true if opts.env? and opts.env.PORT is "RANDOM_PORT"
     checkDone = ->
       cb errs, opts if Object.keys(required).length is 0
     checkDone()
@@ -72,7 +72,7 @@ Surveyor = ->
         if err?
           errs = [] if !errs?
           errs.push {slave: slave, err: err}
-        opts.port = res.port
+        opts.env.PORT = res.port
         delete required.port
         checkDone()
 

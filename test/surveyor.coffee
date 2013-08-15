@@ -116,11 +116,12 @@ describe "surveyor", ->
         port: rand
       res.end()
     opts =
-      port: "RANDOM_PORT"
+      env:
+        PORT: "RANDOM_PORT"
     model.slaves.portTest = { ip: '127.0.0.1' }
     surveyor.populateOptions "portTest", opts, (err, opts) ->
       assert.equal null, err
-      assert.equal opts.port, rand
+      assert.equal opts.env.PORT, rand
       done()
   it 'should spawn required processes', (done) ->
     model.manifest =
