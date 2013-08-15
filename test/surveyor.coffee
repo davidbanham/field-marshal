@@ -156,6 +156,20 @@ describe "surveyor", ->
       assert.equal errs, null
       assert.equal Object.keys(procs).length, 4
       done()
+  it 'should update the portMap', (done) ->
+    rand = Math.floor(Math.random() * (1 << 24)).toString(16)
+    randPort = 8000 + Math.floor(Math.random() * 100)
+    opts =
+      name: "portTest"
+      commit: "1"
+      env:
+        PORT: randPort
+    surveyor.updatePortMap "portMapTest", opts, rand
+    assert.deepEqual model.portMap["portMapTest"][rand],
+      repo: "portTest"
+      commit: "1"
+      port: randPort
+    done()
   it 'should calculate the routing table', ->
     assert false
   it 'should disseminate the routing table to all slaves', ->

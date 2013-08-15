@@ -109,6 +109,14 @@ Surveyor = ->
       return checkDone slave, err, null if err?
       cavalry.spawn slave, opts, (err, res) ->
         cb slave, err, res
+  @updatePortMap = (slave, opts, pid) ->
+    if opts.env? and opts.env.PORT?
+      model.portMap ?= {}
+      model.portMap[slave] ?= {}
+      model.portMap[slave][pid] =
+        repo: opts.name
+        port: opts.env.PORT
+        commit: opts.commit
 
   return this
 
