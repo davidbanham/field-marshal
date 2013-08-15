@@ -80,7 +80,10 @@ Surveyor = ->
     errs = null
     procs = {}
     numProcs = 0
-    checkDone = (slave, err, proc) ->
+    checkDone = (err, info) ->
+      slave = info.slave
+      proc = info.proc
+      opts = info.opts
       numProcs--
       if err?
         errs = [] if !errs?
@@ -104,11 +107,11 @@ Surveyor = ->
           repoData.delta--
           do (target) =>
             @spawn target, repoData.opts, checkDone
-  @spawn = (slave, opts, cb) ->
-    @populateOptions slave, opts, (err, opts) ->
-      return checkDone slave, err, null if err?
-      cavalry.spawn slave, opts, (err, res) ->
-        cb slave, err, res
+  @spawn = (slave, opts, cb) =>
+    @populateOptions slave, opts, (err, opts) =>
+      return cb err, {slave: slave, proc: null, opts: opts} if err?
+      cavalry.spawn slave, opts, (err, res) =>
+        cb err, {slave: slave, proc: res, opts: opts}
   @updatePortMap = (slave, opts, pid) ->
     if opts.env? and opts.env.PORT?
       model.portMap ?= {}
