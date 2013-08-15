@@ -170,7 +170,120 @@ describe "surveyor", ->
       commit: "1"
       port: randPort
     done()
-  it 'should calculate the routing table', ->
-    assert false
+  it 'should calculate the routing table', (done) ->
+    model.slaves["routingTestSlave1"] =
+      ip: "127.0.0.1"
+      processes:
+        pid1:
+          status: "running"
+        pid2:
+          status: "running"
+    model.slaves["routingTestSlave2"] =
+      ip: "127.0.0.2"
+      processes:
+        pid1:
+          status: "running"
+        pid2:
+          status: "running"
+    model.manifest =
+      test1:
+        opts:
+          commit: '1'
+          env:
+            PORT: 8000
+      test2:
+        opts:
+          commit: '1'
+          env:
+            PORT: 8001
+    model.portMap =
+      routingTestSlave1:
+        pid1:
+          repo: 'test1'
+          commit: '1'
+          port: 8000
+        pid2:
+          repo: 'test2'
+          commit: '1'
+          port: 8001
+      routingTestSlave2:
+        pid1:
+          repo: 'test1'
+          commit: '1'
+          port: 8000
+        pid2:
+          repo: 'test2'
+          commit: '1'
+          port: 8001
+    surveyor.calculateRoutingTable (err, table) ->
+      assert.deepEqual table,
+        test1:
+          routes: [
+            {host: "127.0.0.1", port: "8000"}
+            {host: "127.0.0.2", port: "8000"}
+          ]
+        test2:
+          routes: [
+            {host: "127.0.0.1", port: "8001"}
+            {host: "127.0.0.2", port: "8001"}
+          ]
+    done()
+  it 'should omit services running the wrong commit', (done) ->
+    model.slaves["routingTestSlave1"] =
+      ip: "127.0.0.1"
+      processes:
+        pid1:
+          status: "running"
+        pid2:
+          status: "running"
+    model.slaves["routingTestSlave2"] =
+      ip: "127.0.0.2"
+      processes:
+        pid1:
+          status: "running"
+        pid2:
+          status: "running"
+    model.manifest =
+      test1:
+        opts:
+          commit: '1'
+          env:
+            PORT: 8000
+      test2:
+        opts:
+          commit: '1'
+          env:
+            PORT: 8001
+    model.portMap =
+      routingTestSlave1:
+        pid1:
+          repo: 'test1'
+          commit: '1'
+          port: 8000
+        pid2:
+          repo: 'test2'
+          commit: '2'
+          port: 8001
+      routingTestSlave2:
+        pid1:
+          repo: 'test1'
+          commit: '1'
+          port: 8000
+        pid2:
+          repo: 'test2'
+          commit: '1'
+          port: 8001
+    surveyor.calculateRoutingTable (err, table) ->
+      assert.deepEqual table,
+        test1:
+          routes: [
+            {host: "127.0.0.1", port: 8000}
+            {host: "127.0.0.2", port: 8000}
+          ]
+        test2:
+          routes: [
+            {host: "127.0.0.2", port: 8001}
+          ]
+    done()
   it 'should disseminate the routing table to all slaves', ->
     assert false

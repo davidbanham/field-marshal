@@ -120,6 +120,23 @@ Surveyor = ->
         repo: opts.name
         port: opts.env.PORT
         commit: opts.commit
+  @calculateRoutingTable = (cb) ->
+    routes = {}
+    for name, slave of model.portMap
+      for pid, service of slave
+        continue if service.commit isnt model.manifest[service.repo].opts.commit
+
+        routes[service.repo] ?= {}
+        #read in all the options like routing method
+        for k, v of model.manifest[service.repo].routing
+          routes[service.repo][k] = v
+
+        routes[service.repo].routes ?= []
+        if model.slaves[name].processes[pid].status is 'running'
+          routes[service.repo].routes.push
+            host: model.slaves[name].ip
+            port: service.port
+    cb null, routes
 
   return this
 
