@@ -137,6 +137,16 @@ Surveyor = ->
             host: model.slaves[name].ip
             port: service.port
     cb null, routes
+  @propagateRoutingTable = (table, cb) =>
+    jobs = Object.keys(model.slaves).length
+    errs = null
+    for name, slave of model.slaves
+      cavalry.sendRouting name, table, (err, body) ->
+        jobs--
+        if err?
+          errs ?= []
+          errs.push {slave: name, err: err}
+        cb errs if jobs is 0
 
   return this
 

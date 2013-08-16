@@ -285,5 +285,22 @@ describe "surveyor", ->
             {host: "127.0.0.2", port: 8001}
           ]
     done()
-  it 'should disseminate the routing table to all slaves', ->
-    assert false
+  it 'should disseminate the routing table to all slaves', (done) ->
+    model.slaves["routingTestSlave1"] =
+      ip: "127.0.0.1"
+      processes:
+        pid1:
+          status: "running"
+    table =
+      test1:
+        routes: [
+          {host: "127.0.0.1", port: 8000}
+        ]
+    server.on "request", (req, res) ->
+      req.on 'data', (data) ->
+        parsed = JSON.parse data.toString()
+        assert.deepEqual parsed, table
+        res.end()
+    surveyor.propagateRoutingTable table, (err) ->
+      assert.equal err, null
+      done()

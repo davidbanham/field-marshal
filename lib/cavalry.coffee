@@ -44,6 +44,8 @@ Cavalry = ->
     @getJSON "port", slave, cb
   @ps = (slave, cb) ->
     @getJSON "ps", slave, cb
+  @sendRouting = (slave, table, cb) =>
+    @postJSON "routingTable", slave, table, cb
 
   return this
 
