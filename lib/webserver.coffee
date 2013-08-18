@@ -1,6 +1,7 @@
 http = require 'http'
 url = require 'url'
 model = require('../lib/model')
+gitter = require '../lib/gitter'
 
 server = http.createServer()
 
@@ -22,6 +23,5 @@ server.on 'request', (req, res) ->
     when "/health"
       res.end "ok"
     else
-      res.writeHead 404
-      res.end "not found"
+      gitter.handle req, res
 module.exports = server
