@@ -12,7 +12,7 @@ server = http.createServer()
 describe "gitter", ->
   before (done) ->
     server.listen 3000
-    webserver.timeout = 10
+    webserver.timeout = 100 # Time out connections faster so we can clean up the server. This is an annoying race condition.
     webserver.listen 7000, ->
       done()
   after (done) ->
