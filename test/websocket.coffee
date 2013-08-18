@@ -26,6 +26,32 @@ describe "websocket", ->
       assert model.slaves[rand]
       assert.equal model.slaves[rand].ip, "127.0.0.1"
       done()
+  it "should update the port map", (done) ->
+    rand = Math.floor(Math.random() * (1 << 24)).toString(16)
+    ws = new WebSocket "ws://localhost:4000"
+    ws.on 'open', ->
+      ws.send JSON.stringify
+        id: rand
+        secret: "testingpass"
+        type: "checkin"
+        processes:
+          somepid:
+            id: 'somepid'
+            status: 'running'
+            repo: 'portTest'
+            opts:
+              commit: '1'
+              env:
+                PORT: 3000
+    ws.on 'error', (err) ->
+      throw new Error err
+    ws.on 'message', (message) ->
+      assert.deepEqual model.portMap[rand].somepid,
+        repo: "portTest"
+        commit: "1"
+        port: 3000
+      done()
+
   it "should delete stale clients", (done) ->
     rand = Math.floor(Math.random() * (1 << 24)).toString(16)
     ws = new WebSocket "ws://localhost:4000"

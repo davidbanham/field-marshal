@@ -1,5 +1,6 @@
 WebSocketServer = require('ws').Server
 model = require('../lib/model')
+surveyor = require '../lib/surveyor'
 
 SECRET = process.env.Secret or "testingpass"
 
@@ -15,7 +16,9 @@ wss.on 'connection', (ws) =>
           processes: parsed.processes
           timer: setTimeout ->
             delete model.slaves[parsed.id]
+            delete model.portMap[parsed.id]
           , model.ttl
+        surveyor.updatePortMap parsed.id, parsed.processes
         ws.send JSON.stringify
           status: 200
       when "event"
