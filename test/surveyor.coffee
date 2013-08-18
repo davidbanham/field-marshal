@@ -159,12 +159,14 @@ describe "surveyor", ->
   it 'should update the portMap', (done) ->
     rand = Math.floor(Math.random() * (1 << 24)).toString(16)
     randPort = 8000 + Math.floor(Math.random() * 100)
-    opts =
-      name: "portTest"
-      commit: "1"
-      env:
-        PORT: randPort
-    surveyor.updatePortMap "portMapTest", opts, rand
+    processes = {}
+    processes[rand] =
+      repo: "portTest"
+      opts:
+        commit: "1"
+        env:
+          PORT: randPort
+    surveyor.updatePortMap "portMapTest", processes
     assert.deepEqual model.portMap["portMapTest"][rand],
       repo: "portTest"
       commit: "1"

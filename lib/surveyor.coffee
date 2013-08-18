@@ -112,14 +112,15 @@ Surveyor = ->
       return cb err, {slave: slave, proc: null, opts: opts} if err?
       cavalry.spawn slave, opts, (err, res) =>
         cb err, {slave: slave, proc: res, opts: opts}
-  @updatePortMap = (slave, opts, pid) ->
-    if opts.env? and opts.env.PORT?
-      model.portMap ?= {}
-      model.portMap[slave] ?= {}
-      model.portMap[slave][pid] =
-        repo: opts.name
-        port: opts.env.PORT
-        commit: opts.commit
+  @updatePortMap = (slave, processes) ->
+    for pid, proc of processes
+      if proc.opts.env? and proc.opts.env.PORT?
+        model.portMap ?= {}
+        model.portMap[slave] ?= {}
+        model.portMap[slave][pid] =
+          repo: proc.repo
+          port: proc.opts.env.PORT
+          commit: proc.opts.commit
   @calculateRoutingTable = (cb) ->
     routes = {}
     for name, slave of model.portMap
