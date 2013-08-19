@@ -306,3 +306,30 @@ describe "surveyor", ->
     surveyor.propagateRoutingTable table, (err) ->
       assert.equal err, null
       done()
+  it 'should run setup jobs before spawning', (done) ->
+    model.slaves["setupTestSlave"] =
+      ip: "127.0.0.1"
+    model.manifest =
+      opts=
+        repo: "setupTest"
+        setup: [
+          "npm",
+          "install"
+        ]
+        command: [
+          "node",
+          "server.js"
+        ]
+        commit: '1'
+    server.once "request", (req, res) ->
+      req.on 'data', (data) ->
+        parsed = JSON.parse data.toString()
+        assert.equal req.url, '/exec'
+        res.end()
+        server.once "request", (req, res) ->
+          req.on 'data', (data) ->
+            parsed = JSON.parse data.toString()
+            assert.equal req.url, '/spawn'
+            res.end()
+            done()
+    surveyor.spawn "setupTestSlave", opts, (err, info) ->

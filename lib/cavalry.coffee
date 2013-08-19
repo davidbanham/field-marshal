@@ -32,6 +32,8 @@ Cavalry = ->
       cb error, body
   @spawn = (slave, opts, cb) =>
     @postJSON "spawn", slave, opts, cb
+  @exec = (slave, opts, cb) =>
+    @postJSON "exec", slave, opts, cb
   @stop = (slave, opts, cb) =>
     @postJSON "stop", slave, opts, cb
   @restart = (slave, opts, cb) =>
