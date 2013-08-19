@@ -2,7 +2,7 @@ WebSocketServer = require('ws').Server
 model = require('../lib/model')
 surveyor = require '../lib/surveyor'
 
-SECRET = process.env.Secret or "testingpass"
+SECRET = process.env.SECRET or "testingpass"
 
 wss = new WebSocketServer({port: 4000})
 wss.on 'connection', (ws) =>
