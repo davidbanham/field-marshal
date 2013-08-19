@@ -10,6 +10,7 @@ port = process.env.WEBSERVERPORT or 4001
 secret = process.env.SECRET or 'testingpass'
 
 repos.on 'push', (push) ->
+  push.accept()
   opts =
     name: push.repo
     url: "http://git:#{secret}@#{host}:#{port}/#{push.repo}"

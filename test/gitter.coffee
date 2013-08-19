@@ -12,36 +12,39 @@ server = http.createServer()
 describe "gitter", ->
   before (done) ->
     server.listen 3000
-    webserver.timeout = 100 # Time out connections faster so we can clean up the server. This is an annoying race condition.
     webserver.listen 7000, ->
       done()
   after (done) ->
     server.removeAllListeners "request"
     server.close()
-    webserver.timeout = 120000 #default
     webserver.close ->
       done()
   it 'should accept a git push', (done) ->
-    push = spawn 'git', ['push', 'http://test:testingpass@localhost:7000/beep', 'master']
+    rand = Math.floor(Math.random() * (1 << 24)).toString(16)
+    push = spawn 'git', ['push', '-u', "http://test:testingpass@localhost:7000/#{rand}", 'master']
     push.stderr.on 'data', (buf) ->
       #console.log "stderr", buf.toString()
     push.stdout.on 'data', (buf) ->
       #console.log 'stdout', buf.toString()
     gitter.repos.once 'push', () ->
       setTimeout ->
-        assert fs.existsSync './repos/beep.git'
+        assert fs.existsSync "./repos/#{rand}.git"
         push.kill()
-        rimraf './repos/beep', ->
+        rimraf "./repos/#{rand}.git", ->
           done()
       , 500
   it 'should tell all drones to fetch', (done) ->
+    rand = Math.floor(Math.random() * (1 << 24)).toString(16)
     model.slaves['fetchtest'] =
       ip: '127.0.0.1'
     server.once "request", (req, res) ->
       req.once "data", (buf) ->
         assert.deepEqual JSON.parse(buf.toString()),
-          name: 'beep'
-          url: 'http://git:testingpass@localhost:4001/beep'
+          name: rand
+          url: "http://git:testingpass@localhost:4001/#{rand}"
         res.end()
-        done()
-    push = spawn 'git', ['push', 'http://test:testingpass@localhost:7000/beep', 'master']
+        setTimeout ->
+          rimraf "./repos/#{rand}.git", ->
+            done()
+        , 1000
+    push = spawn 'git', ['push', "http://test:testingpass@localhost:7000/#{rand}", 'master']
