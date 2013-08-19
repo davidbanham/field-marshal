@@ -21,7 +21,7 @@ describe "gitter", ->
       done()
   it 'should accept a git push', (done) ->
     rand = Math.floor(Math.random() * (1 << 24)).toString(16)
-    push = spawn 'git', ['push', '-u', "http://test:testingpass@localhost:7000/#{rand}", 'master']
+    push = spawn 'git', ['push', "http://test:testingpass@localhost:7000/#{rand}", 'master']
     push.stderr.on 'data', (buf) ->
       #console.log "stderr", buf.toString()
     push.stdout.on 'data', (buf) ->
