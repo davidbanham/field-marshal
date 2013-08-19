@@ -10,6 +10,7 @@ Surveyor = ->
     fs.readdir manifestDir, (err, files) ->
       errs = null
       parts = 0
+      return cb "No manifest files found" if files.length is 0
       for file in files
         parts++
         do (file) ->
@@ -77,6 +78,7 @@ Surveyor = ->
         checkDone()
 
   @spawnMissing = (cb) =>
+    cb new Error "no slaves available" if Object.keys(model.slaves).length is 0
     errs = null
     procs = {}
     numProcs = 0
@@ -94,6 +96,7 @@ Surveyor = ->
       cb errs, procs if numProcs is 0
 
     for repo, repoData of model.manifest
+      repoData.opts.repo = repo
       if repoData.required?
         numProcs += repoData.required.length
         for slave in repoData.required
@@ -107,6 +110,7 @@ Surveyor = ->
           repoData.delta--
           do (target) =>
             @spawn target, repoData.opts, checkDone
+    cb null, {} if numProcs is 0
   @spawn = (slave, opts, cb) =>
     @populateOptions slave, opts, (err, opts) =>
       return cb err, {slave: slave, proc: null, opts: opts} if err?
@@ -122,6 +126,7 @@ Surveyor = ->
           port: proc.opts.env.PORT
           commit: proc.opts.commit
   @calculateRoutingTable = (cb) ->
+    return cb new Error "manifest not ready" unless model.manifest?
     routes = {}
     for name, slave of model.portMap
       for pid, service of slave

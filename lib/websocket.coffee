@@ -16,7 +16,7 @@ wss.on 'connection', (ws) =>
           processes: parsed.processes
           timer: setTimeout ->
             delete model.slaves[parsed.id]
-            delete model.portMap[parsed.id]
+            delete model.portMap[parsed.id] if model.portMap? and model.portMap[parsed.id]?
           , model.ttl
         surveyor.updatePortMap parsed.id, parsed.processes
         ws.send JSON.stringify

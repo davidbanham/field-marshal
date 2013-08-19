@@ -39,9 +39,9 @@ describe "gitter", ->
       ip: '127.0.0.1'
     server.once "request", (req, res) ->
       req.once "data", (buf) ->
-        assert.deepEqual JSON.parse(buf.toString()),
-          name: rand
-          url: "http://git:testingpass@localhost:4001/#{rand}"
+        parsed = JSON.parse buf.toString()
+        assert.equal parsed.name, rand
+        assert.equal parsed.url, "http://git:testingpass@localhost:4001/#{rand}"
         res.end()
         setTimeout ->
           rimraf "./repos/#{rand}.git", ->

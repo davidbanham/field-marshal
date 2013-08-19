@@ -13,6 +13,7 @@ repos.on 'push', (push) ->
   push.accept()
   opts =
     name: push.repo
+    commit: push.commit
     url: "http://git:#{secret}@#{host}:#{port}/#{push.repo}"
   for slave of model.slaves
     do (slave) ->
