@@ -17,6 +17,8 @@ Field-Marshal takes care of the rest, routing the http traffic, respawning insta
 git clone https://github.com/davidbanham/field-marshal
 npm install
 
+Port 4000 and 4001 will need to be accessible by the slaves to check in and fetch code.
+
 #Running it
 
 Configuration paramaters are passed in via environment variables. eg:
