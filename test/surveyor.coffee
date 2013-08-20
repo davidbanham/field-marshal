@@ -7,6 +7,7 @@ server = http.createServer()
 
 describe "surveyor.getManifest", ->
   before ->
+    return if process.env.TRAVIS
     fs.writeFileSync './manifest/test_1.json', JSON.stringify
       name1:
         instances: 7
@@ -14,15 +15,18 @@ describe "surveyor.getManifest", ->
       name2:
         instances: 3
   after ->
+    return if process.env.TRAVIS
     fs.unlinkSync './manifest/test_1.json'
     fs.unlinkSync './manifest/test_2.json'
   it 'should concatenate all json files in a dir into one manifest', (done) ->
+    return if done() process.env.TRAVIS
     surveyor.getManifest (err) ->
       assert.equal err, null
       assert.equal model.manifest.name1.instances, 7
       assert.equal model.manifest.name2.instances, 3
       done()
   it 'should complain when something is duplicated', (done) ->
+    return if done() process.env.TRAVIS
     fs.writeFileSync './manifest/test_2dup.json', JSON.stringify
       name2:
         instances: 3
@@ -31,6 +35,7 @@ describe "surveyor.getManifest", ->
       for error in err
         done() if error is "name2 is duplicated"
   it 'should handle malformed JSON', (done) ->
+    return if done() process.env.TRAVIS
     fs.writeFileSync './manifest/test_malformed.json', "lol this totally isn't JSON"
     surveyor.getManifest (err, manifest) ->
       fs.unlinkSync './manifest/test_malformed.json'
