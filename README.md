@@ -14,7 +14,7 @@ Field-Marshal takes care of the rest, routing the http traffic, respawning insta
 
 #Installation
 
-npm install field-marshal
+npm install -g field-marshal
 
 Port 4000 and 4001 will need to be accessible by the slaves to check in and fetch code.
 
