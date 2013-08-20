@@ -1,6 +1,6 @@
 {
   "name": "cavalry",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "The land based equivalent of a Rear Admiral",
   "main": "index.coffee",
   "bin": "./index.js",
