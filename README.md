@@ -14,9 +14,14 @@ Field-Marshal takes care of the rest, routing the http traffic, respawning insta
 
 #Installation
 
-npm install -g field-marshal
+npm:
+    npm install -g field-marshal
 
-Port 4000 and 4001 will need to be accessible by the slaves to check in and fetch code.
+git:
+    git clone https://github.com/davidbanham/field-marshal
+    npm install
+
+Port 4000 and 4001 will need to be accessible by the slaves to check in and fetch code. If you install via npm, bear in mind you'll need to place your manifest files in whatever directory npm puts your global modules.
 
 #Running it
 
