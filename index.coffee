@@ -31,6 +31,8 @@ setInterval ->
   check()
 , 3000
 
-setInterval ->
-  route()
-, 3001
+setTimeout ->
+  setInterval ->
+    route()
+  , 3000
+, 1500
