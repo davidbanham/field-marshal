@@ -3,11 +3,13 @@ path = require 'path'
 model = require '../lib/model.coffee'
 cavalry = require '../lib/cavalry.coffee'
 
-manifestDir = path.resolve __dirname, '..', 'manifest'
+manifestDir = path.resolve process.cwd(), 'manifest'
 Surveyor = ->
   @getManifest = (cb) ->
     manifest = {}
     fs.readdir manifestDir, (err, files) ->
+      console.error "Manifest directory not found. You should probably create it" if err?.code is 'ENOENT'
+      throw err if err?
       errs = null
       parts = 0
       return cb "No manifest files found" if files.length is 0

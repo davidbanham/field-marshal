@@ -1,7 +1,7 @@
 pushover = require 'pushover'
 path = require 'path'
 os = require 'os'
-repodir = path.resolve './repos'
+repodir = path.resolve process.cwd(), 'repos'
 repos = pushover repodir
 model = require '../lib/model.coffee'
 cavalry = require '../lib/cavalry.coffee'

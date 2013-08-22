@@ -21,7 +21,9 @@ git:
     git clone https://github.com/davidbanham/field-marshal
     npm install
 
-Port 4000 and 4001 will need to be accessible by the slaves to check in and fetch code. If you install via npm, bear in mind you'll need to place your manifest files in whatever directory npm puts your global modules.
+Port 4000 and 4001 will need to be accessible by the slaves to check in and fetch code.
+
+If you install globally, field-marshal will look for manifests and store repositories in the directory it's run from.
 
 #Running it
 
