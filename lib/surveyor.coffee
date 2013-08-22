@@ -80,7 +80,7 @@ Surveyor = ->
         checkDone()
 
   @spawnMissing = (cb) =>
-    cb new Error "no slaves available" if Object.keys(model.slaves).length is 0
+    return cb new Error "no slaves available" if Object.keys(model.slaves).length is 0
     errs = null
     procs = {}
     numProcs = 0
