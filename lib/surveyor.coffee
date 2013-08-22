@@ -164,6 +164,12 @@ Surveyor = ->
           errs ?= []
           errs.push {slave: name, err: err}
         cb errs if jobs is 0
+  @calcLoad = (processes) ->
+    load = 0
+    for pid, proc of processes when proc.status is 'running'
+      continue if !model.manifest[proc.repo]?
+      load += model.manifest[proc.repo].load
+    return load
 
   return this
 

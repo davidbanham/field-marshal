@@ -15,6 +15,7 @@ wss.on 'connection', (ws) =>
         model.slaves[parsed.id] =
           ip: ws._socket.remoteAddress
           processes: parsed.processes
+          load: surveyor.calcLoad parsed.processes
           timer: setTimeout ->
             delete model.slaves[parsed.id]
             delete model.portMap[parsed.id] if model.portMap? and model.portMap[parsed.id]?

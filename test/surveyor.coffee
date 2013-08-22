@@ -338,3 +338,19 @@ describe "surveyor", ->
             res.end()
             done()
     surveyor.spawn "setupTestSlave", opts, (err, info) ->
+  it 'should calculate load correctly', ->
+    model.manifest =
+      load:
+        load: 1
+    processes =
+      one:
+        status: 'running'
+        repo: 'load'
+      two:
+        status: 'running'
+        repo: 'load'
+      three:
+        status: 'stopped'
+        repo: 'load'
+    load = surveyor.calcLoad processes
+    assert.equal load, 2
