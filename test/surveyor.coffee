@@ -354,3 +354,37 @@ describe "surveyor", ->
         repo: 'load'
     load = surveyor.calcLoad processes
     assert.equal load, 2
+  it.only 'should add load to slaves as processes are spawned', (done) ->
+    model.manifest =
+      one:
+        required: ['slave1', 'slave2']
+        load: 1
+        opts:
+          commit: '1'
+          name: 'one'
+      two:
+        delta: 2
+        load: 1
+        opts:
+          commit: '2'
+          name: 'two'
+    server.on "request", (req, res) ->
+      req.on 'data', (data) ->
+        parsed = JSON.parse data.toString()
+        rand = Math.floor(Math.random() * (1 << 24)).toString(16)
+        response = {}
+        response[rand] =
+          id: rand
+          status: 'running'
+          repo: 'reponame'
+          commit: parsed.commit
+          cwd: '/dev/null'
+          drone: 'testDrone'
+        res.end JSON.stringify response
+    model.slaves['slave1'] = { ip: '127.0.0.1', load: 0 }
+    model.slaves['slave2'] = { ip: '127.0.0.1', load: 0 }
+    surveyor.spawnMissing (errs, procs) ->
+      assert.equal errs, null
+      assert.equal model.slaves.slave1.load, 2
+      assert.equal model.slaves.slave2.load, 2
+      done()

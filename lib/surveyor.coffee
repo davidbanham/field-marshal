@@ -103,12 +103,13 @@ Surveyor = ->
         numProcs += repoData.required.length
         for slave in repoData.required
           do (slave) =>
+            model.slaves[slave].load += repoData.load
             @spawn slave, repoData.opts, checkDone
       else if repoData.delta > 0
         numProcs += repoData.delta
         while repoData.delta > 0
           target = @sortSlaves()[0]
-          target.load += repoData.load
+          model.slaves[target].load += repoData.load
           repoData.delta--
           do (target) =>
             @spawn target, repoData.opts, checkDone
