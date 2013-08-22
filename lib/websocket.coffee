@@ -11,6 +11,7 @@ wss.on 'connection', (ws) =>
     return ws.send JSON.stringify({status: 401}) if parsed.secret isnt SECRET
     switch parsed.type
       when "checkin"
+        clearTimeout model.slaves[parsed.id].timer if model.slaves[parsed.id]?
         model.slaves[parsed.id] =
           ip: ws._socket.remoteAddress
           processes: parsed.processes
