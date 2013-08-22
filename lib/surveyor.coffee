@@ -148,6 +148,7 @@ Surveyor = ->
           routes[service.repo][k] = v
 
         routes[service.repo].routes ?= []
+        continue if !model.slaves[name].processes[pid]?
         if model.slaves[name].processes[pid].status is 'running'
           routes[service.repo].routes.push
             host: model.slaves[name].ip
