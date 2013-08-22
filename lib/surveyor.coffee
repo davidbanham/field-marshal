@@ -167,6 +167,7 @@ Surveyor = ->
   @calcLoad = (processes) ->
     load = 0
     for pid, proc of processes when proc.status is 'running'
+      continue if !model.manifest?
       continue if !model.manifest[proc.repo]?
       load += model.manifest[proc.repo].load
     return load
