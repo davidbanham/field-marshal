@@ -3,6 +3,7 @@ websocket = require './lib/websocket.coffee'
 webserver = require './lib/webserver.coffee'
 webserver.listen 4001
 util = require './lib/util.coffee'
+model = require './lib/model.coffee'
 
 lock = false
 check = ->
