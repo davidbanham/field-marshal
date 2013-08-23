@@ -1,6 +1,6 @@
 {
   "name": "field-marshal",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "The land based equivalent of a Rear Admiral",
   "main": "index.coffee",
   "bin": "./index.js",
