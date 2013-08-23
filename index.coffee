@@ -17,14 +17,14 @@ check = ->
         return console.error err, procs if err?
         console.log "spawned", procs if Object.keys(procs).length isnt 0
 
-currentRoutingTable = ""
+model.currentRoutingTableHash = ""
 route = ->
   surveyor.calculateRoutingTable (err, table) ->
     return console.error err if err?
     hash = util.hashObj(table)
-    if hash isnt currentRoutingTable
+    if hash isnt model.currentRoutingTableHash
       surveyor.propagateRoutingTable table, (errs) ->
-        currentRoutingTable = hash unless errs?
+        model.currentRoutingTableHash = hash unless errs?
         console.error errs if err?
 
 setInterval ->
