@@ -21,6 +21,11 @@ wss.on 'connection', (ws) =>
             delete model.portMap[parsed.id] if model.portMap? and model.portMap[parsed.id]?
           , model.ttl
         surveyor.updatePortMap parsed.id, parsed.processes
+        if parsed.routingTableHash isnt model.currentRoutingTableHash
+          surveyor.calculateRoutingTable (err, table) ->
+            return console.error err if err?
+            surveyor.propagateRoutingTable table, (err) ->
+              console.error err if err?
         ws.send JSON.stringify
           status: 200
       when "event"

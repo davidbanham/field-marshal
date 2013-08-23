@@ -3,6 +3,8 @@ model = require("../lib/model.coffee")
 WebSocket = require('ws')
 EventEmitter = require('events').EventEmitter
 wss = null
+http = require 'http'
+server = http.createServer()
 
 describe "websocket", ->
   before (done) ->
@@ -91,3 +93,51 @@ describe "websocket", ->
           signal: "SIGTERM"
   it "should be an eventEmitter", ->
     assert wss instanceof EventEmitter
+  it "should re-propagate the routing table if a node isn't up to date", (done) ->
+    model.portMap = {}
+    model.slaves =
+      routingTableTest:
+        ip: '127.0.0.1'
+    server.listen 3000
+    server.on 'request', (req, res) ->
+      assert.equal req.url, '/routingTable'
+      req.on 'data', (data) ->
+        parsed = JSON.parse data.toString()
+        assert.deepEqual parsed, {}
+        server.removeAllListeners "request"
+        server.close()
+        done()
+    ws = new WebSocket "ws://localhost:4000"
+    ws.on 'open', ->
+      ws.send JSON.stringify
+        secret: "testingpass"
+        type: "checkin"
+        id: "routingTableTest"
+        processes: {}
+        routingTableHash: "foo"
+    ws.on 'error', (err) ->
+      throw new Error err
+  it "shouldn't re-propagate the routing table if a node is up to date", (done) ->
+    model.portMap = {}
+    model.currentRoutingTableHash = "bar"
+    model.slaves =
+      routingTableTest:
+        ip: '127.0.0.1'
+    server.listen 3000
+    server.on 'request', (req, res) ->
+      throw new Error "Routing table request recieved!"
+    setTimeout ->
+      server.removeAllListeners "request"
+      server.close()
+      done()
+    , 400
+    ws = new WebSocket "ws://localhost:4000"
+    ws.on 'open', ->
+      ws.send JSON.stringify
+        secret: "testingpass"
+        type: "checkin"
+        id: "routingTableTest"
+        processes: {}
+        routingTableHash: "bar"
+    ws.on 'error', (err) ->
+      throw new Error err
