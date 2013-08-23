@@ -75,6 +75,7 @@ Surveyor = ->
         if err?
           errs = [] if !errs?
           errs.push {slave: slave, err: err}
+          return checkDone()
         opts.env.PORT = res.port
         delete required.port
         checkDone()
