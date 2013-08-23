@@ -144,6 +144,7 @@ Surveyor = ->
     routes = {}
     for name, slave of model.portMap
       for pid, service of slave
+        continue if !model.manifest[service.repo]? #Bail if a listen process is no longer present in the manifest
         continue if service.commit isnt model.manifest[service.repo].opts.commit
 
         routes[service.repo] ?= {}
