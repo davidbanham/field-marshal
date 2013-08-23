@@ -10,7 +10,6 @@ check = ->
   return if lock
   lock = true
   surveyor.getManifest (err) ->
-    console.error err if err?
     throw new Error err if err?
     surveyor.buildRequired ->
       surveyor.spawnMissing (err, procs) ->
