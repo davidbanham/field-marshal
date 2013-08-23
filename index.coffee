@@ -24,7 +24,6 @@ check = ->
         return console.error err, procs if err?
         console.log "spawned", procs if Object.keys(procs).length isnt 0
 
-model.currentRoutingTableHash = ""
 route = ->
   surveyor.calculateRoutingTable (err, table) ->
     return console.error err if err?
