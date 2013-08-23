@@ -14,7 +14,7 @@ check = ->
     surveyor.buildRequired ->
       surveyor.spawnMissing (err, procs) ->
         lock = false
-        return console.error err if err?
+        return console.error err, procs if err?
         console.log "spawned", procs if Object.keys(procs).length isnt 0
 
 currentRoutingTable = ""

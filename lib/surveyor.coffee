@@ -122,6 +122,7 @@ Surveyor = ->
         setupOpts.command = JSON.parse JSON.stringify setupOpts.setup
         setupOpts.once = true
         cavalry.exec slave, setupOpts, (err, res) ->
+          return cb err if err?
           return cb new Error("Setup job failed"), {slave: slave, data: res, opts: opts} if res.code isnt 0
           cavalry.spawn slave, opts, (err, res) ->
             cb err, {slave: slave, proc: res, opts: opts}
