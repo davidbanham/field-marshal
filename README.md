@@ -15,9 +15,11 @@ Field-Marshal takes care of the rest, routing the http traffic, respawning insta
 #Installation
 
 npm:
+
     npm install -g field-marshal
 
 git:
+
     git clone https://github.com/davidbanham/field-marshal
     npm install
 
