@@ -1,35 +1,59 @@
 fs = require 'fs'
 path = require 'path'
+EventEmitter = require('events').EventEmitter
 model = require '../lib/model.coffee'
 cavalry = require '../lib/cavalry.coffee'
 
+
 manifestDir = path.resolve process.cwd(), 'manifest'
 Surveyor = ->
+  @checkDuplicateName = (name, data, manifest, cb) ->
+    if manifest[name]?
+      err = "#{name} is duplicated"
+    cb err, name, data
   @getManifest = (cb) ->
     manifest = {}
-    fs.readdir manifestDir, (err, files) ->
+    fs.readdir manifestDir, (err, files) =>
       console.error "Manifest directory not found. You should probably create it" if err?.code is 'ENOENT'
       throw err if err?
       errs = null
       parts = 0
       return cb "No manifest files found" if files.length is 0
-      for file in files
-        parts++
-        do (file) ->
-          fs.readFile path.join(manifestDir, file), (err, data) ->
-            try
-              parsed = JSON.parse data
-            catch e
-              errs = [] if !errs?
-              errs.push {file: file, error: e}
-            for name, data of parsed
-              if manifest[name]?
-                errs = [] if !errs?
-                errs.push "#{name} is duplicated"
-              manifest[name] = data
-            parts--
-            model.manifest = manifest
-            cb errs if parts is 0
+      numStanzas = 0
+      numFiles = 0
+      emitter = new EventEmitter
+      emitter.on 'file', (file) ->
+        numFiles++
+        fs.readFile path.join(manifestDir, file), (err, data) ->
+          numFiles--
+          try
+            parsed = JSON.parse data
+          catch err
+            emitter.emit 'fileErr', {file: file, error: err} if err?
+          emitter.emit 'parsedFile', parsed
+      emitter.on 'parsedFile', (parsed) ->
+        return emitter.emit 'stanzaComplete' if parsed is undefined
+        return emitter.emit 'stanzaComplete' if Object.keys(parsed).length is 0
+        for name, data of parsed
+          numStanzas++
+          emitter.emit 'stanza', {name: name, data: data}
+      emitter.on 'stanza', ({name, data}) =>
+        @checkDuplicateName name, data, manifest, (err, name, data) ->
+          emitter.emit 'duplicateErr', {err: err, name: name, data: data} if err?
+          manifest[name] = data
+          numStanzas--
+          emitter.emit 'stanzaComplete'
+      emitter.on 'fileErr', (err) ->
+        errs = [] if !errs?
+        errs.push err
+      emitter.on 'duplicateErr', ({err, name, data}) ->
+        errs = [] if !errs?
+        errs.push "#{name} is duplicated"
+      emitter.on 'stanzaComplete', ->
+        if numStanzas is 0 and numFiles is 0
+          model.manifest = manifest
+          cb errs
+      emitter.emit 'file', file for file in files
   @ps = (cb) ->
     ps = {}
     errs = []
