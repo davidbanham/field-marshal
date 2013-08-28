@@ -413,3 +413,14 @@ describe "surveyor", ->
       assert.equal model.slaves.slave1.load, 2
       assert.equal model.slaves.slave2.load, 2
       done()
+  it 'should insert the most recent commit id if requested', (done) ->
+    model.latestCommits.put 'one', "I don't know, like a sha or something?", (err) ->
+      assert.equal err, null
+      data =
+        opts:
+          commit: 'LATEST'
+          name: 'one'
+      surveyor.insertCommit 'one', data, (err, name, data) ->
+        assert.equal err, null
+        assert.equal data.opts.commit, "I don't know, like a sha or something?"
+        done()

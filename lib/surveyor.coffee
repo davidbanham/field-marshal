@@ -4,9 +4,17 @@ EventEmitter = require('events').EventEmitter
 model = require '../lib/model.coffee'
 cavalry = require '../lib/cavalry.coffee'
 
-
 manifestDir = path.resolve process.cwd(), 'manifest'
 Surveyor = ->
+  @insertCommit = (name, data, cb) ->
+    return cb null, name, data if !data.opts?.commit?
+    if data.opts.commit is 'LATEST'
+      model.latestCommits.get name, (err, commit) ->
+        data.opts.commit = commit
+        cb err, name, data
+    else
+      cb null, name, data
+
   @checkDuplicateName = (name, data, manifest, cb) ->
     if manifest[name]?
       err = "#{name} is duplicated"
@@ -38,11 +46,13 @@ Surveyor = ->
           numStanzas++
           emitter.emit 'stanza', {name: name, data: data}
       emitter.on 'stanza', ({name, data}) =>
-        @checkDuplicateName name, data, manifest, (err, name, data) ->
-          emitter.emit 'duplicateErr', {err: err, name: name, data: data} if err?
-          manifest[name] = data
-          numStanzas--
-          emitter.emit 'stanzaComplete'
+        @insertCommit name, data, (err, name, data) =>
+          throw err if err?
+          @checkDuplicateName name, data, manifest, (err, name, data) ->
+            emitter.emit 'duplicateErr', {err: err, name: name, data: data} if err?
+            manifest[name] = data
+            numStanzas--
+            emitter.emit 'stanzaComplete'
       emitter.on 'fileErr', (err) ->
         errs = [] if !errs?
         errs.push err

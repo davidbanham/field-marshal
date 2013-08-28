@@ -33,6 +33,16 @@ describe "gitter", ->
         rimraf "./repos/#{rand}.git", ->
           done()
       , 500
+  it 'should update the latest commit in the model', (done) ->
+    rand = Math.floor(Math.random() * (1 << 24)).toString(16)
+    push = spawn 'git', ['push', "http://test:testingpass@localhost:7000/#{rand}", 'master']
+    shaChecker = spawn 'git', ['log', 'master', '-n', '1']
+    shaChecker.stdout.on 'data', (buf) ->
+      targetSha = buf.toString().split('\n')[0].split(' ')[1]
+      gitter.repos.once 'push', () ->
+        model.latestCommits.get rand, (err, sha) ->
+          assert.equal sha, targetSha
+          done()
   it 'should tell all drones to fetch', (done) ->
     rand = Math.floor(Math.random() * (1 << 24)).toString(16)
     model.slaves['fetchtest'] =

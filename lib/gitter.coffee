@@ -15,6 +15,8 @@ repos.on 'push', (push) ->
     name: push.repo
     commit: push.commit
     url: "http://git:#{secret}@#{host}:#{port}/#{push.repo}"
+  model.latestCommits.put opts.name, opts.commit, (err) ->
+    throw err if err?
   for slave of model.slaves
     do (slave) ->
       cavalry.fetch slave, opts, (err, body) ->

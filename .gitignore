@@ -1,4 +1,4 @@
 repos
 node_modules
-model.db
+*.db
 manifest
