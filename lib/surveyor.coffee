@@ -3,6 +3,7 @@ path = require 'path'
 EventEmitter = require('events').EventEmitter
 model = require '../lib/model.coffee'
 cavalry = require '../lib/cavalry.coffee'
+util = require '../lib/util.coffee'
 
 manifestDir = path.resolve process.cwd(), 'manifest'
 Surveyor = ->
@@ -59,8 +60,17 @@ Surveyor = ->
       emitter.on 'duplicateErr', ({err, name, data}) ->
         errs = [] if !errs?
         errs.push "#{name} is duplicated"
-      emitter.on 'stanzaComplete', ->
+      emitter.on 'stanzaComplete', =>
         if numStanzas is 0 and numFiles is 0
+          #Check whether or not the manifest has changed
+          model.manifest = {} if !model.manifest?
+          newManifestHash = util.hashObj manifest
+          oldManifestHash = util.hashObj model.manifest
+          #If it has, go deal with the processes we no longer need
+          if newManifestHash isnt oldManifestHash
+            frozenManifest = JSON.parse JSON.stringify model.manifest
+            @checkStale frozenManifest, manifest
+          #Load in the fresh manifest and we're done
           model.manifest = manifest
           cb errs
       emitter.emit 'file', file for file in files
@@ -210,6 +220,25 @@ Surveyor = ->
       continue if !model.manifest[proc.repo]?
       load += model.manifest[proc.repo].load
     return load
+  @checkStale = (oldManifest, newManifest) ->
+    kill = (slave, pid, proc) ->
+      model.kill = {} if !model.kill?
+      model.kill[slave] = {} if !model.kill[slave]?
+      model.kill[slave][pid] =
+        setTimeout ->
+          cavalry.stop slave, [pid], (err) ->
+            return console.error "Error stopping pid #{pid} on slave #{slave}", err if err?
+        , oldManifest[proc.repo].killTimeout or 300000 # 5 minutes
+    findStalePids = (name, repo) ->
+      for slave, data of model.slaves
+        for pid, proc of data.processes
+          kill slave, pid, proc if proc.commit is repo.opts.commit and repo.killable
+    for name, repo of oldManifest
+      findStalePids name, repo if !newManifest[name]?
+      matched = false
+      for newName, newRepo of newManifest
+        matched = true if newRepo.opts.commit is repo.opts.commit and name is newName
+      findStalePids name, repo unless matched
 
   return this
 

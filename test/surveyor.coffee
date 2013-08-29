@@ -6,18 +6,24 @@ http = require 'http'
 server = http.createServer()
 
 describe "surveyor.getManifest", ->
-  before ->
+  beforeEach ->
     try
       fs.mkdirSync './manifest'
     fs.writeFileSync './manifest/test_1.json', JSON.stringify
       name1:
         instances: 7
+        opts:
+          commit: '1'
     fs.writeFileSync './manifest/test_2.json', JSON.stringify
       name2:
         instances: 3
-  after ->
+        opts:
+          commit: '1'
+  afterEach ->
     fs.unlinkSync './manifest/test_1.json'
     fs.unlinkSync './manifest/test_2.json'
+    model.manifest = {}
+    model.slaves = {}
   it 'should concatenate all json files in a dir into one manifest', (done) ->
     surveyor.getManifest (err) ->
       assert.equal err, null
@@ -28,6 +34,8 @@ describe "surveyor.getManifest", ->
     fs.writeFileSync './manifest/test_2dup.json', JSON.stringify
       name2:
         instances: 3
+        opts:
+          commit: '1'
     surveyor.getManifest (err) ->
       fs.unlinkSync './manifest/test_2dup.json'
       for error in err
@@ -39,11 +47,85 @@ describe "surveyor.getManifest", ->
       for error in err
         if error.file is "test_malformed.json"
           done() if error.error.type is "unexpected_token"
+  it 'should prune jobs no longer in the manifest', (done) ->
+    rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    model.slaves[rand1] =
+      processes:
+        one:
+          status: 'running'
+          commit: '1'
+          repo: 'a'
+    oldManifest =
+      a:
+        killable: true
+        opts:
+          commit: '1'
+    newManifest =
+      a:
+        opts:
+          commit: '2'
+    surveyor.checkStale oldManifest, newManifest
+    assert model.kill[rand1].one
+    clearTimeout model.kill[rand1].one
+    model.kill = {}
+    done()
+  it 'should respect the kill ttl set in the options', (done) ->
+    rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    model.slaves[rand1] =
+      processes:
+        one:
+          status: 'running'
+          commit: '1'
+          repo: 'a'
+    oldManifest =
+      a:
+        killable: true
+        killTimeout: 10000
+        opts:
+          commit: '1'
+    newManifest =
+      a:
+        opts:
+          commit: '2'
+    surveyor.checkStale oldManifest, newManifest
+    assert.equal model.kill[rand1].one._idleTimeout, oldManifest.a.killTimeout
+    clearTimeout model.kill[rand1].one
+    model.kill = {}
+    done()
+  it 'should prune jobs no longer in the manifest - integration', (done) ->
+    fs.writeFileSync './manifest/test_2.json', JSON.stringify
+      name2:
+        instances: 3
+        killable: true
+        opts:
+          commit: '1'
+    surveyor.getManifest (errs) ->
+      throw errs if errs?
+      fs.writeFileSync './manifest/test_2.json', JSON.stringify
+        name2:
+          instances: 3
+          killable: true
+          opts:
+            commit: '2'
+      rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
+      model.slaves[rand1] =
+        processes:
+          one:
+            status: 'running'
+            commit: '1'
+            repo: 'name2'
+      surveyor.getManifest (errs) ->
+        throw errs if errs?
+        assert model.kill[rand1].one
+        clearTimeout model.kill[rand1].one
+        model.kill = {}
+        done()
+
 describe "surveyor", ->
   beforeEach ->
-    server.listen 3000
     model.slaves = {}
     model.manifest = {}
+    server.listen 3000
   afterEach ->
     server.removeAllListeners "request"
     server.close()
