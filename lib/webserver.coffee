@@ -8,6 +8,8 @@ server = http.createServer()
 SECRET = process.env.SECRET or "testingpass"
 
 server.on 'request', (req, res) ->
+  res.setHeader "Access-Control-Allow-Origin", "*"
+  res.setHeader "Access-Control-Allow-Headers", "Authorization, X-Requested-With"
   if !req.headers.authorization?
     res.setHeader('www-authenticate', 'Basic')
     res.writeHead 401
@@ -22,6 +24,15 @@ server.on 'request', (req, res) ->
   switch parsed.pathname
     when "/health"
       res.end "ok"
+    when "/slaves"
+      res.setHeader "Content-Type", "application/json"
+      slaves = {}
+      for name, slave of model.slaves
+        slaves[name] =
+          ip: slave.ip
+          processes: slave.processes
+          load: slave.load
+      res.end JSON.stringify slaves
     else
       gitter.handle req, res
 module.exports = server

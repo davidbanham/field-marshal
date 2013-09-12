@@ -29,3 +29,25 @@ describe "webserver", ->
       assert.equal err, null
       done assert.equal res.statusCode, 404
     .auth "user", "testingpass"
+  it 'should return a list of current slaves', (done) ->
+    model.slaves =
+      slave1:
+        ip: "127.0.0.1"
+        processes:
+          pid1:
+            id: "pid1"
+            status: "running"
+            repo: "test1"
+            opts:
+              commit: "1"
+              env:
+                PORT: 3008
+    request.get "http://localhost:4001/slaves", (err, res, body) ->
+      assert.deepEqual JSON.parse(body), model.slaves
+      done()
+    .auth "user", "testingpass"
+  it 'should return permissive CORS headers', (done) ->
+    request.get "http://localhost:4001/slaves", (err, res, body) ->
+      assert.equal res.headers['access-control-allow-origin'], '*'
+      done()
+    .auth "user", "testingpass"
