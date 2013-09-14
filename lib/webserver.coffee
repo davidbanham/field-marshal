@@ -7,6 +7,13 @@ server = http.createServer()
 
 SECRET = process.env.SECRET or "testingpass"
 
+getJSON = (req, cb) ->
+  optStr = ""
+  req.on "data", (buf) ->
+    optStr += buf.toString()
+  req.on "end", ->
+    cb JSON.parse optStr
+
 server.on 'request', (req, res) ->
   res.setHeader "Access-Control-Allow-Origin", "*"
   res.setHeader "Access-Control-Allow-Headers", req.headers["access-control-request-headers"]
@@ -33,6 +40,11 @@ server.on 'request', (req, res) ->
           processes: slave.processes
           load: slave.load
       res.end JSON.stringify slaves
+    when "/stop"
+      #Should there should be logic here (or elsewhere) to send the right PIDs to the right slaves?
+      getJSON req, (opts) ->
+        cavalry.stop opts.slave, opts.ids, (err, body) ->
+          res.end()
     else
       gitter.handle req, res
 module.exports = server
