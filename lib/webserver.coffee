@@ -13,7 +13,15 @@ getJSON = (req, cb) ->
   req.on "data", (buf) ->
     optStr += buf.toString()
   req.on "end", ->
-    cb JSON.parse optStr
+    try
+      parsed = JSON.parse optStr
+    catch e
+      cb e, null
+    cb null, parsed
+
+respondJSONerr = (err, res) ->
+  res.writeHead 400
+  res.end err
 
 server.on 'request', (req, res) ->
   res.setHeader "Access-Control-Allow-Origin", "*"
@@ -44,6 +52,7 @@ server.on 'request', (req, res) ->
     when "/stop"
       #Should there should be logic here (or elsewhere) to send the right PIDs to the right slaves?
       getJSON req, (opts) ->
+        return respondJSONerr err, res if err?
         cavalry.stop opts.slave, opts.ids, (err, body) ->
           res.end()
     else
