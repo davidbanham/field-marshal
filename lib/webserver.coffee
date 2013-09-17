@@ -2,6 +2,7 @@ http = require 'http'
 url = require 'url'
 model = require('../lib/model')
 gitter = require '../lib/gitter'
+cavalry = require '../lib/cavalry'
 
 server = http.createServer()
 
