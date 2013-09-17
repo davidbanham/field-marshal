@@ -9,7 +9,7 @@ SECRET = process.env.SECRET or "testingpass"
 
 server.on 'request', (req, res) ->
   res.setHeader "Access-Control-Allow-Origin", "*"
-  res.setHeader "Access-Control-Allow-Headers", "Authorization, X-Requested-With"
+  res.setHeader "Access-Control-Allow-Headers", req.headers["access-control-request-headers"]
   if !req.headers.authorization?
     res.setHeader('www-authenticate', 'Basic')
     res.writeHead 401
