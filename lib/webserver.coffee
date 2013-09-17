@@ -56,7 +56,7 @@ server.on 'request', (req, res) ->
       res.end JSON.stringify model.manifest
     when "/stop"
       #Should there should be logic here (or elsewhere) to send the right PIDs to the right slaves?
-      getJSON req, (opts) ->
+      getJSON req, (err, opts) ->
         return respondJSONerr err, res if err?
         cavalry.stop opts.slave, opts.ids, (err, body) ->
           res.end()
