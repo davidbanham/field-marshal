@@ -49,6 +49,9 @@ server.on 'request', (req, res) ->
           processes: slave.processes
           load: slave.load
       res.end JSON.stringify slaves
+    when "/manifest"
+      res.setHeader "Content-Type", "application/json"
+      res.end JSON.stringify model.manifest
     when "/stop"
       #Should there should be logic here (or elsewhere) to send the right PIDs to the right slaves?
       getJSON req, (opts) ->

@@ -46,6 +46,16 @@ describe "webserver", ->
       assert.deepEqual JSON.parse(body), model.slaves
       done()
     .auth "user", "testingpass"
+  it 'should return the manifest', (done) ->
+    model.manifest =
+      a:
+        instances: '*'
+        opts:
+          commit: '1'
+    request.get "http://localhost:4001/manifest", (err, res, body) ->
+      assert.deepEqual JSON.parse(body), model.manifest
+      done()
+    .auth "user", "testingpass"
   it 'should return permissive CORS headers', (done) ->
     request.get "http://localhost:4001/slaves", (err, res, body) ->
       assert.equal res.headers['access-control-allow-origin'], '*'
