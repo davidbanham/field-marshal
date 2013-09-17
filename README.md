@@ -4,6 +4,8 @@ Field-Marshal is an open source, simple, private PaaS you can run yourself.
 
 Field Marshal is designed to work with [Cavalry](https://github.com/davidbanham/cavalry) and is a rewrite of [Rear Admiral](https://github.com/PinionTech/rear-admiral).
 
+You may also be interested in [Quartermaster](https://github.com/davidbanham/quartermaster), which is a graphical administration tool.
+
 1. You run one or more Cavalry slaves on different servers.
 2. You git push your code to Field-Marshal.
 3. You tell Field-Marshal how many of each of your services you want to run, how they should be started, and where people look for them.
