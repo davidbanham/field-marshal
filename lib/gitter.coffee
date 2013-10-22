@@ -20,9 +20,8 @@ repos.on 'push', (push) ->
   for slave of model.slaves
     do (slave) ->
       cavalry.fetch slave, opts, (err, body) ->
-        cavalry.deploy slave, opts, (err, body) ->
-          console.error err if err?
-          console.error err if body?
+        console.error err if err?
+        console.error err if body?
 
 module.exports =
   handle: (req, res) ->
