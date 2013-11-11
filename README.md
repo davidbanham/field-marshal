@@ -14,6 +14,18 @@ Field-Marshal takes care of the rest, routing the http traffic, respawning insta
 
 [![Build Status](https://travis-ci.org/davidbanham/field-marshal.png?branch=master)](https://travis-ci.org/davidbanham/field-marshal)
 
+#Getting Involved
+
+I ❤ pull requests. Feel free to log a github issue if there's something you'd like.
+
+I'm also trying out tracking this project on Trello. Trello is rad, and we use it a lot at work, but I've never tracked a public project like this on it before. Maybe it will be great!
+
+[Field Marshal on Trello](https://trello.com/b/hPBd5r5T)
+
+If you don't already have a Trello account, and you sign up via this link, I'll get a free month of Trello Gold. I think it will also make Joel Spolsky love me. So that's nice.
+
+[Make Joel Spolsky Love Dave](https://trello.com/davidbanham/recommend)
+
 #Installation
 
 npm:
