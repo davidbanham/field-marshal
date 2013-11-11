@@ -28,6 +28,8 @@ If you don't already have a Trello account, and you sign up via this link, I'll 
 
 #Installation
 
+There is a video of an installation walkthrough I gave at a user group - [Video Walkthrough](https://www.youtube.com/watch?v=l6VHqIXoNv0#t=972)
+
 npm:
 
     npm install -g field-marshal
