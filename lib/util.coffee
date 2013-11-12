@@ -8,3 +8,4 @@ module.exports =
       return e
     md5sum.update str
     return md5sum.digest 'hex'
+  apiVersion: '2'

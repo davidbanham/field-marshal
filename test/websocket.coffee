@@ -1,5 +1,6 @@
 assert = require 'assert'
 model = require("../lib/model.coffee")
+util = require("../lib/util.coffee")
 WebSocket = require('ws')
 EventEmitter = require('events').EventEmitter
 wss = null
@@ -22,6 +23,7 @@ describe "websocket", ->
         id: rand
         secret: "testingpass"
         type: "checkin"
+        apiVersion: util.apiVersion
     ws.on 'error', (err) ->
       throw new Error err
     ws.on 'message', (message) ->
@@ -36,6 +38,7 @@ describe "websocket", ->
         id: rand
         secret: "testingpass"
         type: "checkin"
+        apiVersion: util.apiVersion
         processes:
           somepid:
             id: 'somepid'
@@ -62,6 +65,7 @@ describe "websocket", ->
         id: rand
         secret: "testingpass"
         type: "checkin"
+        apiVersion: util.apiVersion
         processes: {}
     ws.on 'error', (err) ->
       throw new Error err
@@ -112,6 +116,7 @@ describe "websocket", ->
       ws.send JSON.stringify
         secret: "testingpass"
         type: "checkin"
+        apiVersion: util.apiVersion
         id: "routingTableTest"
         processes: {}
         routingTableHash: "foo"
@@ -136,8 +141,23 @@ describe "websocket", ->
       ws.send JSON.stringify
         secret: "testingpass"
         type: "checkin"
+        apiVersion: util.apiVersion
         id: "routingTableTest"
         processes: {}
         routingTableHash: "bar"
     ws.on 'error', (err) ->
       throw new Error err
+  it 'should reject checkins where the api version is not matching', (done) ->
+    ws = new WebSocket "ws://localhost:4000"
+    ws.on 'open', ->
+      ws.send JSON.stringify
+        secret: 'testingpass'
+        type: 'checkin'
+        id: 'apiVersionTest'
+        processes: {}
+        routingTableHash: 'bar'
+        apiVersion: '1'
+      setTimeout ->
+        assert.equal model.slaves.apiVersionTest, undefined
+        done()
+      , 5

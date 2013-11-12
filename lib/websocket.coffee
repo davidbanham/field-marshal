@@ -1,6 +1,7 @@
 WebSocketServer = require('ws').Server
 model = require('../lib/model')
 surveyor = require '../lib/surveyor'
+util = require '../lib/util'
 
 SECRET = process.env.SECRET or "testingpass"
 
@@ -11,6 +12,7 @@ wss.on 'connection', (ws) =>
     return ws.send JSON.stringify({status: 401}) if parsed.secret isnt SECRET
     switch parsed.type
       when "checkin"
+        return if parsed.apiVersion isnt util.apiVersion
         clearTimeout model.slaves[parsed.id].timer if model.slaves[parsed.id]?
         model.slaves[parsed.id] =
           ip: ws._socket.remoteAddress
