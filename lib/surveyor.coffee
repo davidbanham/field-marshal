@@ -167,18 +167,8 @@ Surveyor = ->
   @spawn = (slave, opts, cb) =>
     @populateOptions slave, opts, (err, opts) =>
       return cb err, {slave: slave, proc: null, opts: opts} if err?
-      if opts.setup?
-        setupOpts = JSON.parse JSON.stringify opts
-        setupOpts.command = JSON.parse JSON.stringify setupOpts.setup
-        setupOpts.once = true
-        cavalry.exec slave, setupOpts, (err, res) ->
-          return cb err if err?
-          return cb new Error("Setup job failed"), {slave: slave, data: res, opts: opts} if res.code isnt 0
-          cavalry.spawn slave, opts, (err, res) ->
-            cb err, {slave: slave, proc: res, opts: opts}
-      else
-        cavalry.spawn slave, opts, (err, res) =>
-          cb err, {slave: slave, proc: res, opts: opts}
+      cavalry.spawn slave, opts, (err, res) =>
+        cb err, {slave: slave, proc: res, opts: opts}
   @updatePortMap = (slave, processes) ->
     for pid, proc of processes
       if proc.opts.env? and proc.opts.env.PORT?
