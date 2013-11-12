@@ -12,11 +12,13 @@ wss.on 'connection', (ws) =>
     return ws.send JSON.stringify({status: 401}) if parsed.secret isnt SECRET
     switch parsed.type
       when "checkin"
-        return if parsed.apiVersion isnt util.apiVersion
+        parsed.spawnable = true
+        parsed.spawnable = false if parsed.apiVersion isnt util.apiVersion
         clearTimeout model.slaves[parsed.id].timer if model.slaves[parsed.id]?
         model.slaves[parsed.id] =
           ip: ws._socket.remoteAddress
           processes: parsed.processes
+          spawnable: parsed.spawnable
           load: surveyor.calcLoad parsed.processes
           timer: setTimeout ->
             delete model.slaves[parsed.id]

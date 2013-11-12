@@ -147,7 +147,7 @@ describe "websocket", ->
         routingTableHash: "bar"
     ws.on 'error', (err) ->
       throw new Error err
-  it 'should reject checkins where the api version is not matching', (done) ->
+  it 'should mark checkins as unspawnable where the api version is not matching', (done) ->
     ws = new WebSocket "ws://localhost:4000"
     ws.on 'open', ->
       ws.send JSON.stringify
@@ -158,6 +158,6 @@ describe "websocket", ->
         routingTableHash: 'bar'
         apiVersion: '1'
       setTimeout ->
-        assert.equal model.slaves.apiVersionTest, undefined
+        assert.equal model.slaves.apiVersionTest.spawnable, false
         done()
-      , 5
+      , 1

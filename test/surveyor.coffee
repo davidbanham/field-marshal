@@ -153,6 +153,7 @@ describe "surveyor", ->
     rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
     rand2 = Math.floor(Math.random() * (1 << 24)).toString(16)
     model.slaves[rand1] =
+      spawnable: true
       processes:
         one:
           status: 'running'
@@ -163,6 +164,7 @@ describe "surveyor", ->
           commit: '2'
           repo: 'b'
     model.slaves[rand2] =
+      spawnable: true
       processes:
         two:
           status: 'running'
@@ -180,6 +182,22 @@ describe "surveyor", ->
     surveyor.buildRequired ->
       assert.deepEqual model.manifest.a.required, [rand2]
       assert.equal model.manifest.b.delta, 1
+      done()
+
+  it 'should not include unspawnable slaves in buildRequired', (done) ->
+    rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    rand2 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    model.slaves[rand1] =
+      spawnable: true
+    model.slaves[rand2] =
+      spawnable: false
+    model.manifest =
+      a:
+        instances: '*'
+        opts:
+          commit: '1'
+    surveyor.buildRequired ->
+      assert.deepEqual model.manifest.a.required, [rand1]
       done()
   it 'should find the least loaded slave', ->
     model.slaves =
@@ -235,11 +253,46 @@ describe "surveyor", ->
           cwd: '/dev/null'
           drone: 'testDrone'
         res.end JSON.stringify response
-    model.slaves['slave1'] = { ip: '127.0.0.1', load: 0 }
-    model.slaves['slave2'] = { ip: '127.0.0.1', load: 0 }
+    model.slaves['slave1'] = { ip: '127.0.0.1', load: 0, spawnable: true }
+    model.slaves['slave2'] = { ip: '127.0.0.1', load: 0, spawnable: true }
     surveyor.spawnMissing (errs, procs) ->
       assert.equal errs, null
       assert.equal Object.keys(procs).length, 4
+      done()
+  it 'should not include any non spawnable drones', (done) ->
+    model.manifest =
+      one:
+        required: ['slave1']
+        load: 1
+        opts:
+          commit: '1'
+          name: 'one'
+      two:
+        delta: 2
+        load: 1
+        opts:
+          commit: '2'
+          name: 'two'
+    server.on "request", (req, res) ->
+      req.on 'data', (data) ->
+        parsed = JSON.parse data.toString()
+        rand = Math.floor(Math.random() * (1 << 24)).toString(16)
+        response = {}
+        response[rand] =
+          id: rand
+          status: 'running'
+          repo: 'reponame'
+          commit: parsed.commit
+          cwd: '/dev/null'
+          drone: 'slave1'
+        res.end JSON.stringify response
+    model.slaves['slave1'] = { ip: '127.0.0.1', load: 0, spawnable: true }
+    model.slaves['slave2'] = { ip: '127.0.0.2', load: 0, spawnable: false }
+    surveyor.spawnMissing (errs, procs) ->
+      for pid, proc of procs
+        throw new Error 'unspawnable slave found' if proc.drone isnt 'slave1'
+      assert.equal errs, null
+      assert.equal Object.keys(procs).length, 3
       done()
   it 'should update the portMap', (done) ->
     rand = Math.floor(Math.random() * (1 << 24)).toString(16)
@@ -489,8 +542,8 @@ describe "surveyor", ->
           cwd: '/dev/null'
           drone: 'testDrone'
         res.end JSON.stringify response
-    model.slaves['slave1'] = { ip: '127.0.0.1', load: 0 }
-    model.slaves['slave2'] = { ip: '127.0.0.1', load: 0 }
+    model.slaves['slave1'] = { ip: '127.0.0.1', load: 0, spawnable: true }
+    model.slaves['slave2'] = { ip: '127.0.0.1', load: 0, spawnable: true }
     surveyor.spawnMissing (errs, procs) ->
       assert.equal errs, null
       assert.equal model.slaves.slave1.load, 2
@@ -507,3 +560,11 @@ describe "surveyor", ->
         assert.equal err, null
         assert.equal data.opts.commit, "I don't know, like a sha or something?"
         done()
+  it 'should filter to only spawnable slaves', ->
+    model.slaves['spawn1'] = { ip: '127.0.0.1', load: 3, spawnable: true }
+    model.slaves['spawn2'] = { ip: '127.0.0.1', load: 1, spawnable: true }
+    model.slaves['nospawn1'] = { ip: '127.0.0.1', load: 0, spawnable: false }
+    model.slaves['nospawn2'] = { ip: '127.0.0.1', load: 2, spawnable: false }
+    slaves = surveyor.filterSlaves model.slaves
+    assert.equal slaves.nospawn1, undefined
+    assert.equal slaves.nospawn2, undefined

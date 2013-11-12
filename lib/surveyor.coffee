@@ -94,7 +94,7 @@ Surveyor = ->
           present = false
           for pid, procData of slaveData.processes
             present = true if procData.repo is repo and procData.status is 'running' and procData.commit is repoData.opts.commit
-          required.push slave unless present
+          required.push slave unless present or !slaveData.spawnable
       else
         running = 0
         for slave, slaveData of model.slaves
@@ -102,10 +102,15 @@ Surveyor = ->
             running++ if procData.repo is repo and procData.status is 'running' and procData.commit is repoData.opts.commit
         repoData.delta = repoData.instances - running
     cb()
-  @sortSlaves = ->
-    ([k, v.load] for k, v of model.slaves).sort (a,b) ->
+  @sortSlaves = (slaves) ->
+    ([k, v.load] for k, v of slaves or model.slaves).sort (a,b) ->
       a[1] - b[1]
     .map (n) -> n[0]
+  @filterSlaves = (slaves) ->
+    filtered = {}
+    for name, slave of slaves
+      filtered[name] = slave if slave.spawnable
+    return filtered
   @populateOptions = (slave, opts, cb) ->
     opts = JSON.parse JSON.stringify opts
     required = {}
@@ -153,7 +158,7 @@ Surveyor = ->
       else if repoData.delta > 0
         numProcs += repoData.delta
         while repoData.delta > 0
-          target = @sortSlaves()[0]
+          target = @sortSlaves(@filterSlaves(model.slaves))[0]
           model.slaves[target].load += repoData.load
           repoData.delta--
           do (target) =>
