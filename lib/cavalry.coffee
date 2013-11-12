@@ -1,4 +1,5 @@
 model = require '../lib/model.coffee'
+util = require '../lib/util.coffee'
 request = require 'request'
 SECRET = process.env.CAVALRYPASS or "testingpass"
 
@@ -31,13 +32,13 @@ Cavalry = ->
       body = parseJSON body
       cb error, body
   @spawn = (slave, opts, cb) =>
-    @postJSON "spawn", slave, opts, cb
+    @postJSON "#{util.apiVersion}/spawn", slave, opts, cb
   @exec = (slave, opts, cb) =>
-    @postJSON "exec", slave, opts, cb
+    @postJSON "#{util.apiVersion}/exec", slave, opts, cb
   @stop = (slave, opts, cb) =>
-    @postJSON "stop", slave, opts, cb
+    @postJSON "#{util.apiVersion}/stop", slave, opts, cb
   @restart = (slave, opts, cb) =>
-    @postJSON "restart", slave, opts, cb
+    @postJSON "#{util.apiVersion}/restart", slave, opts, cb
   @fetch = (slave, opts, cb) =>
     @postJSON "fetch", slave, opts, cb
   @port = (slave, cb) =>

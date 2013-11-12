@@ -1,6 +1,7 @@
 assert = require 'assert'
 surveyor = require '../lib/surveyor'
 model = require '../lib/model'
+util = require '../lib/util.coffee'
 fs = require 'fs'
 http = require 'http'
 server = http.createServer()
@@ -408,13 +409,13 @@ describe "surveyor", ->
     server.once "request", (req, res) ->
       req.on 'data', (data) ->
         parsed = JSON.parse data.toString()
-        assert.equal req.url, '/exec'
+        assert.equal req.url, "/#{util.apiVersion}/exec"
         res.end JSON.stringify
           code: 0
         server.once "request", (req, res) ->
           req.on 'data', (data) ->
             parsed = JSON.parse data.toString()
-            assert.equal req.url, '/spawn'
+            assert.equal req.url, "/#{util.apiVersion}/spawn"
             res.end()
             done()
     surveyor.spawn "setupTestSlave", opts, (err, info) ->
@@ -436,7 +437,7 @@ describe "surveyor", ->
     server.once "request", (req, res) ->
       req.on 'data', (data) ->
         parsed = JSON.parse data.toString()
-        assert.equal req.url, '/exec'
+        assert.equal req.url, "/#{util.apiVersion}/exec"
         res.end JSON.stringify
           code: 1
         server.once "request", (req, res) ->
