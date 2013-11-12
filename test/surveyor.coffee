@@ -444,61 +444,6 @@ describe "surveyor", ->
     surveyor.propagateRoutingTable table, (err) ->
       assert.equal err, null
       done()
-  it 'should run setup jobs before spawning', (done) ->
-    model.slaves["setupTestSlave"] =
-      ip: "127.0.0.1"
-    model.manifest =
-      opts=
-        repo: "setupTest"
-        setup: [
-          "npm",
-          "install"
-        ]
-        command: [
-          "node",
-          "server.js"
-        ]
-        commit: '1'
-    server.once "request", (req, res) ->
-      req.on 'data', (data) ->
-        parsed = JSON.parse data.toString()
-        assert.equal req.url, "/#{util.apiVersion}/exec"
-        res.end JSON.stringify
-          code: 0
-        server.once "request", (req, res) ->
-          req.on 'data', (data) ->
-            parsed = JSON.parse data.toString()
-            assert.equal req.url, "/#{util.apiVersion}/spawn"
-            res.end()
-            done()
-    surveyor.spawn "setupTestSlave", opts, (err, info) ->
-  it 'shouldnt spawn if the setup job failed', (done) ->
-    model.slaves["setupTestSlave"] =
-      ip: "127.0.0.1"
-    model.manifest =
-      opts=
-        repo: "setupTest"
-        setup: [
-          "npm",
-          "install"
-        ]
-        command: [
-          "node",
-          "server.js"
-        ]
-        commit: '1'
-    server.once "request", (req, res) ->
-      req.on 'data', (data) ->
-        parsed = JSON.parse data.toString()
-        assert.equal req.url, "/#{util.apiVersion}/exec"
-        res.end JSON.stringify
-          code: 1
-        server.once "request", (req, res) ->
-          throw new Error "setup job recieved"
-    surveyor.spawn "setupTestSlave", opts, (err, info) ->
-      assert err instanceof Error
-      assert.equal info.data.code, 1
-      done()
   it 'should calculate load correctly', ->
     model.manifest =
       load:
