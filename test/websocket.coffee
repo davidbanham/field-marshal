@@ -156,7 +156,7 @@ describe "websocket", ->
         id: 'apiVersionTest'
         processes: {}
         routingTableHash: 'bar'
-        apiVersion: '1'
+        apiVersion: '0'
       setTimeout ->
         assert.equal model.slaves.apiVersionTest.spawnable, false
         done()
