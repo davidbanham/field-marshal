@@ -51,6 +51,8 @@ server.on 'request', (req, res) ->
           ip: slave.ip
           processes: slave.processes
           load: slave.load
+          spawnable: slave.spawnable
+          apiVersion: slave.apiVersion
       res.end JSON.stringify slaves
     when "/manifest"
       res.setHeader "Content-Type", "application/json"

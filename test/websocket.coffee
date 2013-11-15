@@ -29,6 +29,7 @@ describe "websocket", ->
     ws.on 'message', (message) ->
       assert model.slaves[rand]
       assert.equal model.slaves[rand].ip, "127.0.0.1"
+      assert.equal model.slaves[rand].apiVersion, util.apiVersion
       done()
   it "should update the port map", (done) ->
     rand = Math.floor(Math.random() * (1 << 24)).toString(16)

@@ -34,6 +34,8 @@ describe "webserver", ->
     model.slaves =
       slave1:
         ip: "127.0.0.1"
+        spawnable: true
+        apiVersion: util.apiVersion
         processes:
           pid1:
             id: "pid1"

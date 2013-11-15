@@ -19,6 +19,7 @@ wss.on 'connection', (ws) =>
           ip: ws._socket.remoteAddress
           processes: parsed.processes
           spawnable: parsed.spawnable
+          apiVersion: parsed.apiVersion
           load: surveyor.calcLoad parsed.processes
           timer: setTimeout ->
             delete model.slaves[parsed.id]
