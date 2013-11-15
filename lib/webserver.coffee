@@ -3,6 +3,7 @@ url = require 'url'
 model = require('../lib/model')
 gitter = require '../lib/gitter'
 cavalry = require '../lib/cavalry'
+util = require '../lib/util'
 
 server = http.createServer()
 
@@ -60,6 +61,8 @@ server.on 'request', (req, res) ->
         return respondJSONerr err, res if err?
         cavalry.stop opts.slave, opts.ids, (err, body) ->
           res.end()
+    when "/apiVersion"
+      res.end util.apiVersion
     else
       gitter.handle req, res
 module.exports = server

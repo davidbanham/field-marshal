@@ -2,6 +2,7 @@ assert = require 'assert'
 request = require 'request'
 webserver = require "../lib/webserver.coffee"
 model = require("../lib/model.coffee")
+util = require "../lib/util.coffee"
 model.ttl = 5
 describe "webserver", ->
   before (done) ->
@@ -59,5 +60,10 @@ describe "webserver", ->
   it 'should return permissive CORS headers', (done) ->
     request.get "http://localhost:4001/slaves", (err, res, body) ->
       assert.equal res.headers['access-control-allow-origin'], '*'
+      done()
+    .auth "user", "testingpass"
+  it 'should expose the api version', (done) ->
+    request.get "http://localhost:4001/apiVersion", (err, res, body) ->
+      assert.equal body, util.apiVersion
       done()
     .auth "user", "testingpass"
