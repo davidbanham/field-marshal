@@ -2,6 +2,8 @@ model = require '../lib/model.coffee'
 util = require '../lib/util.coffee'
 request = require 'request'
 SECRET = process.env.CAVALRYPASS or "testingpass"
+CAVALRY_PORT = parseInt process.env.CAVALRYPORT
+CAVALRY_PORT = 3000 if isNaN(CAVALRY_PORT)
 
 parseJSON = (str) ->
   try
@@ -10,8 +12,10 @@ parseJSON = (str) ->
   return str
 
 Cavalry = ->
+  @slaveUrl = (slave) ->
+   "http://#{model.slaves[slave].ip}:#{CAVALRY_PORT}"
   @postJSON = (arg, slave, opts, cb) ->
-    url = "http://#{model.slaves[slave].ip}:3000/#{arg}"
+    url = "#{@slaveUrl(slave)}/#{arg}"
     request
       json: opts
       auth:
@@ -22,7 +26,7 @@ Cavalry = ->
       body = parseJSON body
       cb error, body
   @getJSON = (arg, slave, cb) ->
-    url = "http://#{model.slaves[slave].ip}:3000/#{arg}"
+    url = "#{@slaveUrl(slave)}/#{arg}"
     request.get
       url: url
       auth:
