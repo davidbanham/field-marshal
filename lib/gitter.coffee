@@ -17,6 +17,8 @@ repos.on 'push', (push) ->
     url: "http://git:#{secret}@#{host}:#{port}/#{push.repo}"
   model.latestCommits.put opts.name, opts.commit, (err) ->
     throw err if err?
+  if model.manifest and model.manifest[opts.name]?
+    model.manifest[opts.name].prevCommit = JSON.parse JSON.stringify model.manifest[opts.name].opts.commit
   for slave of model.slaves
     do (slave) ->
       cavalry.fetch slave, opts, (err, body) ->

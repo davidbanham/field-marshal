@@ -121,6 +121,28 @@ describe "surveyor.getManifest", ->
         clearTimeout model.kill[rand1].one
         model.kill = {}
         done()
+describe 'prevCommit', ->
+  after ->
+    fs.unlinkSync './manifest/test_3.json'
+    model.manifest = {}
+    model.slaves = {}
+  it 'should update prevCommit', (done) ->
+    fs.writeFileSync './manifest/test_3.json', JSON.stringify
+      name3:
+        instances: 3
+        opts:
+          commit: 'old'
+    surveyor.getManifest (errs) ->
+      assert !errs
+      fs.writeFileSync './manifest/test_3.json', JSON.stringify
+        name3:
+          instances: 3
+          opts:
+            commit: 'new'
+      surveyor.getManifest (errs) ->
+        assert !errs
+        assert.equal model.manifest.name3.prevCommit, 'old'
+        done()
 
 describe "surveyor", ->
   beforeEach ->
