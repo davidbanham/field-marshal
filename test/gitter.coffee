@@ -55,10 +55,12 @@ describe "gitter", ->
     shaChecker.stdout.on 'data', (buf) ->
       targetSha = buf.toString().split('\n')[0].split(' ')[1]
       gitter.repos.once 'push', () ->
-        assert.equal model.manifest[rand].prevCommit, 'totallyold'
-        model.latestCommits.get rand, (err, sha) ->
-          assert.equal sha, targetSha
-          done()
+        model.prevCommits.get rand, (err, prevCommit) ->
+          assert.deepEqual err, null
+          assert.equal prevCommit, 'totallyold'
+          model.latestCommits.get rand, (err, sha) ->
+            assert.equal sha, targetSha
+            done()
   it 'should tell all drones to fetch', (done) ->
     rand = Math.floor(Math.random() * (1 << 24)).toString(16)
     model.slaves['fetchtest'] =

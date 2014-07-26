@@ -72,7 +72,7 @@ Surveyor = ->
               #Check whether any of the commit SHAs have changed
               if model.manifest[item]
                 if data.opts.commit isnt model.manifest[item].opts.commit
-                  data.prevCommit = model.manifest[item].opts.commit
+                  model.prevCommits.put item, model.manifest[item].opts.commit
             frozenManifest = JSON.parse JSON.stringify model.manifest
             @checkStale frozenManifest, manifest
           #Load in the fresh manifest and we're done

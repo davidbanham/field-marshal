@@ -141,8 +141,10 @@ describe 'prevCommit', ->
             commit: 'new'
       surveyor.getManifest (errs) ->
         assert !errs
-        assert.equal model.manifest.name3.prevCommit, 'old'
-        done()
+        model.prevCommits.get 'name3', (err, prevCommit) ->
+          assert.deepEqual err, null
+          assert.equal prevCommit, 'old'
+          done()
 
 describe "surveyor", ->
   beforeEach ->
