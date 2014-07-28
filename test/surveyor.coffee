@@ -70,6 +70,99 @@ describe "surveyor.getManifest", ->
     clearTimeout model.kill[rand1].one
     model.kill = {}
     done()
+  it 'should not cut over routing while the new commit is not healthy', (done) ->
+    rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    model.slaves = {}
+    model.slaves[rand1] =
+      ip: 'example.com'
+      processes:
+        pidone:
+          status: 'running'
+          commit: '1'
+          repo: 'a'
+        pidtwo:
+          status: 'running'
+          commit: '2'
+          repo: 'a'
+    model.portMap = {}
+    model.portMap[rand1] =
+      pidone:
+        repo: 'a'
+        port: 2014
+        commit: '1'
+    model.manifest =
+      a:
+        instances: 2
+        killable: true
+        opts:
+          commit: '2'
+    model.prevCommits.put 'a', '1', ->
+      surveyor.calculateRoutingTable (err, routes) ->
+        assert.deepEqual err, null
+        assert.deepEqual routes,
+          a:
+            [
+              {
+                host: 'example.com'
+                port: 2014
+              }
+            ]
+        done()
+
+  it 'should cut over routing once the new commit is healthy', (done) ->
+    rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    model.slaves = {}
+    model.slaves[rand1] =
+      ip: 'example.com'
+      processes:
+        pidone:
+          status: 'running'
+          commit: '1'
+          repo: 'a'
+        pidtwo:
+          status: 'running'
+          commit: '2'
+          repo: 'a'
+        pidthree:
+          status: 'running'
+          commit: '2'
+          repo: 'a'
+    model.portMap = {}
+    model.portMap[rand1] =
+      pidone:
+        repo: 'a'
+        port: 2014
+        commit: '1'
+      pidtwo:
+        repo: 'a'
+        port: 2015
+        commit: '2'
+      pidthree:
+        repo: 'a'
+        port: 2016
+        commit: '2'
+    model.manifest =
+      a:
+        instances: 2
+        killable: true
+        opts:
+          commit: '2'
+    model.prevCommits.put 'a', '1', -> #FIXME Decide whether this should be checked by router or whether something else should remove the prevCommit
+      surveyor.calculateRoutingTable (err, routes) ->
+        assert.deepEqual err, null
+        assert.deepEqual routes,
+          a:
+            [
+              {
+                host: 'example.com'
+                port: 2015
+              }
+              {
+                host: 'example.com'
+                port: 2016
+              }
+            ]
+        done()
   it 'should respect the kill ttl set in the options', (done) ->
     rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
     model.slaves[rand1] =
