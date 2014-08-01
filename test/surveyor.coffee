@@ -97,17 +97,18 @@ describe "surveyor.getManifest", ->
         opts:
           commit: '2'
     model.prevCommits.put 'a', '1', ->
-      surveyor.calculateRoutingTable (err, routes) ->
-        assert.deepEqual err, null
-        assert.deepEqual routes,
-          a:
-            [
-              {
-                host: 'example.com'
-                port: 2014
-              }
-            ]
-        done()
+      model.serviceInfo.put 'a', {healthyCommits: {'1': true}}, ->
+        surveyor.calculateRoutingTable (err, routes) ->
+          assert.deepEqual err, null
+          assert.deepEqual routes,
+            a:
+              routes: [
+                {
+                  host: 'example.com'
+                  port: 2014
+                }
+              ]
+          done()
 
   it 'should cut over routing once the new commit is healthy', (done) ->
     rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
@@ -148,21 +149,22 @@ describe "surveyor.getManifest", ->
         opts:
           commit: '2'
     model.prevCommits.put 'a', '1', -> #FIXME Decide whether this should be checked by router or whether something else should remove the prevCommit
-      surveyor.calculateRoutingTable (err, routes) ->
-        assert.deepEqual err, null
-        assert.deepEqual routes,
-          a:
-            [
-              {
-                host: 'example.com'
-                port: 2015
-              }
-              {
-                host: 'example.com'
-                port: 2016
-              }
-            ]
-        done()
+      model.serviceInfo.put 'a', {healthyCommits: {'2': true, '1': true}}, ->
+        surveyor.calculateRoutingTable (err, routes) ->
+          assert.deepEqual err, null
+          assert.deepEqual routes,
+            a:
+              routes:[
+                {
+                  host: 'example.com'
+                  port: 2015
+                }
+                {
+                  host: 'example.com'
+                  port: 2016
+                }
+              ]
+          done()
   it 'should respect the kill ttl set in the options', (done) ->
     rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
     model.slaves[rand1] =
@@ -472,19 +474,21 @@ describe "surveyor", ->
           repo: 'test2'
           commit: '1'
           port: 8001
-    surveyor.calculateRoutingTable (err, table) ->
-      assert.deepEqual table,
-        test1:
-          routes: [
-            {host: "127.0.0.1", port: "8000"}
-            {host: "127.0.0.2", port: "8000"}
-          ]
-        test2:
-          routes: [
-            {host: "127.0.0.1", port: "8001"}
-            {host: "127.0.0.2", port: "8001"}
-          ]
-    done()
+    model.serviceInfo.put 'test1', {healthyCommits: {'1': true}}, ->
+      model.serviceInfo.put 'test2', {healthyCommits: {'1': true}}, ->
+        surveyor.calculateRoutingTable (err, table) ->
+          assert.deepEqual table,
+            test1:
+              routes: [
+                {host: "127.0.0.1", port: "8000"}
+                {host: "127.0.0.2", port: "8000"}
+              ]
+            test2:
+              routes: [
+                {host: "127.0.0.1", port: "8001"}
+                {host: "127.0.0.2", port: "8001"}
+              ]
+        done()
   it 'should omit services running the wrong commit', (done) ->
     model.slaves["routingTestSlave1"] =
       ip: "127.0.0.1"

@@ -5,6 +5,7 @@ Model = ->
   @slaves = {}
   @latestCommits = levelup './commits.db'
   @prevCommits = levelup './prevCommits.db'
+  @serviceInfo = levelup './serviceInfo.db', {valueEncoding: 'json'}
 
   return this
 

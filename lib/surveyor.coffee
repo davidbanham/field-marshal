@@ -183,26 +183,47 @@ Surveyor = ->
           repo: proc.repo
           port: proc.opts.env.PORT
           commit: proc.opts.commit
+  @decideHealthyCommit = (service, cb) ->
+    model.serviceInfo.get service.repo, (err, info) ->
+      return cb err, '' if err?
+      if info.healthyCommits[model.manifest[service.repo].opts.commit]
+        targetCommit = model.manifest[service.repo].opts.commit
+        return cb null, targetCommit
+      else
+        model.prevCommits.get service.repo, (err, prevCommit) ->
+          targetCommit = prevCommit
+          return cb null, targetCommit
+
   @calculateRoutingTable = (cb) ->
     return cb new Error "manifest not ready" unless model.manifest?
     routes = {}
+    counter = 0
+    checkDone = ->
+      return cb null, routes if counter is 0
+    return cb null, routes if Object.keys(model.portMap).length is 0
     for name, slave of model.portMap
       for pid, service of slave
         continue if !model.manifest[service.repo]? #Bail if a listen process is no longer present in the manifest
-        continue if service.commit isnt model.manifest[service.repo].opts.commit
+        do (name, slave, pid, service) =>
+          #Check whether the current commit has ever successfully been deployed.
+          counter++
+          @decideHealthyCommit service, (err, targetCommit) ->
+            counter--
 
-        routes[service.repo] ?= {}
-        #read in all the options like routing method
-        for k, v of model.manifest[service.repo].routing
-          routes[service.repo][k] = v
+            return checkDone() if service.commit isnt targetCommit
 
-        routes[service.repo].routes ?= []
-        continue if !model.slaves[name].processes[pid]?
-        if model.slaves[name].processes[pid].status is 'running'
-          routes[service.repo].routes.push
-            host: model.slaves[name].ip
-            port: service.port
-    cb null, routes
+            routes[service.repo] ?= {}
+            #read in all the options like routing method
+            for k, v of model.manifest[service.repo].routing
+              routes[service.repo][k] = v
+
+            routes[service.repo].routes ?= []
+            return checkDone() if !model.slaves[name].processes[pid]?
+            if model.slaves[name].processes[pid].status is 'running'
+              routes[service.repo].routes.push
+                host: model.slaves[name].ip
+                port: service.port
+            checkDone()
   @propagateRoutingTable = (table, cb) =>
     jobs = Object.keys(model.slaves).length
     errs = null
