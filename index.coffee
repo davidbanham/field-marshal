@@ -16,7 +16,7 @@ check = ->
   , lockTimeout
   lock = true
   surveyor.getManifest (err) ->
-    throw new Error err if err?
+    throw new Error JSON.stringify(err) if err?
     surveyor.buildRequired ->
       surveyor.markHealthy (err) ->
         throw err if err?
