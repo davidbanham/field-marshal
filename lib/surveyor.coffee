@@ -74,10 +74,13 @@ Surveyor = ->
                 if data.opts.commit isnt model.manifest[item].opts.commit
                   model.prevCommits.put item, model.manifest[item].opts.commit
             frozenManifest = JSON.parse JSON.stringify model.manifest
-            @checkStale frozenManifest, manifest
-          #Load in the fresh manifest and we're done
-          model.manifest = manifest
-          cb errs
+            @checkStale frozenManifest, manifest, ->
+              model.manifest = manifest
+              cb errs
+          else
+            #Load in the fresh manifest and we're done
+            model.manifest = manifest
+            cb errs
       emitter.emit 'file', file for file in files
   @ps = (cb) ->
     ps = {}
@@ -257,7 +260,7 @@ Surveyor = ->
       continue if !model.manifest[proc.repo]?
       load += model.manifest[proc.repo].load
     return load
-  @checkStale = (oldManifest, newManifest) ->
+  @checkStale = (oldManifest, newManifest, cb = ->) ->
     kill = (slave, pid, proc) ->
       model.kill = {} if !model.kill?
       model.kill[slave] = {} if !model.kill[slave]?
@@ -270,12 +273,23 @@ Surveyor = ->
       for slave, data of model.slaves
         for pid, proc of data.processes
           kill slave, pid, proc if proc.commit is repo.opts.commit and repo.killable
+    checkDone = ->
+      return cb() if counter is 0
+    counter = 0
+    return checkDone() if Object.keys(oldManifest).length is 0
     for name, repo of oldManifest
-      findStalePids name, repo if !newManifest[name]?
-      matched = false
-      for newName, newRepo of newManifest
-        matched = true if newRepo.opts.commit is repo.opts.commit and name is newName
-      findStalePids name, repo unless matched
+      counter++
+      do (name, repo) ->
+        model.serviceInfo.get name, (err, info) ->
+          counter--
+          return checkDone() if !info?
+          return checkDone() if !info.healthyCommits[newManifest[name].opts.commit]
+          findStalePids name, repo if !newManifest[name]?
+          matched = false
+          for newName, newRepo of newManifest
+            matched = true if newRepo.opts.commit is repo.opts.commit and name is newName
+          findStalePids name, repo unless matched
+          checkDone()
 
   return this
 

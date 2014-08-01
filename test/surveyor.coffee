@@ -65,11 +65,59 @@ describe "surveyor.getManifest", ->
       a:
         opts:
           commit: '2'
-    surveyor.checkStale oldManifest, newManifest
-    assert model.kill[rand1].one
-    clearTimeout model.kill[rand1].one
-    model.kill = {}
-    done()
+    surveyor.checkStale oldManifest, newManifest, ->
+      assert model.kill[rand1].one
+      clearTimeout model.kill[rand1].one
+      model.kill = {}
+      done()
+  it 'should prune jobs once the next commit is healthy', (done) ->
+    rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    model.slaves[rand1] =
+      processes:
+        one:
+          status: 'running'
+          commit: '1'
+          repo: 'a'
+    oldManifest =
+      a:
+        killable: true
+        opts:
+          commit: '1'
+    newManifest =
+      a:
+        opts:
+          commit: '2'
+    model.serviceInfo.put 'a', {healthyCommits: {'2': true}}, ->
+      surveyor.checkStale oldManifest, newManifest, ->
+        assert model.kill[rand1].one
+        clearTimeout model.kill[rand1].one
+        model.kill = {}
+        done()
+
+  it 'should not prune jobs if the next commit is not healthy', (done) ->
+    rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    model.slaves[rand1] =
+      processes:
+        one:
+          status: 'running'
+          commit: '1'
+          repo: 'a'
+    oldManifest =
+      a:
+        killable: true
+        opts:
+          commit: '1'
+    newManifest =
+      a:
+        opts:
+          commit: '2'
+    model.serviceInfo.put 'a', {healthyCommits: {'1': true}}, ->
+      surveyor.checkStale oldManifest, newManifest, ->
+        console.log 'model.kill is', model.kill
+        assert !model.kill or !model.kill[rand1]
+        model.kill = {}
+        done()
+
   it 'should not cut over routing while the new commit is not healthy', (done) ->
     rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
     model.slaves = {}
@@ -183,11 +231,11 @@ describe "surveyor.getManifest", ->
       a:
         opts:
           commit: '2'
-    surveyor.checkStale oldManifest, newManifest
-    assert.equal model.kill[rand1].one._idleTimeout, oldManifest.a.killTimeout
-    clearTimeout model.kill[rand1].one
-    model.kill = {}
-    done()
+    surveyor.checkStale oldManifest, newManifest, ->
+      assert.equal model.kill[rand1].one._idleTimeout, oldManifest.a.killTimeout
+      clearTimeout model.kill[rand1].one
+      model.kill = {}
+      done()
   it 'should prune jobs no longer in the manifest - integration', (done) ->
     fs.writeFileSync './manifest/test_2.json', JSON.stringify
       name2:
@@ -195,27 +243,28 @@ describe "surveyor.getManifest", ->
         killable: true
         opts:
           commit: '1'
-    surveyor.getManifest (errs) ->
-      throw errs if errs?
-      fs.writeFileSync './manifest/test_2.json', JSON.stringify
-        name2:
-          instances: 3
-          killable: true
-          opts:
-            commit: '2'
-      rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
-      model.slaves[rand1] =
-        processes:
-          one:
-            status: 'running'
-            commit: '1'
-            repo: 'name2'
+    model.serviceInfo.put 'name2', {healthyCommits: {'2': true}}, ->
       surveyor.getManifest (errs) ->
         throw errs if errs?
-        assert model.kill[rand1].one
-        clearTimeout model.kill[rand1].one
-        model.kill = {}
-        done()
+        fs.writeFileSync './manifest/test_2.json', JSON.stringify
+          name2:
+            instances: 3
+            killable: true
+            opts:
+              commit: '2'
+        rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
+        model.slaves[rand1] =
+          processes:
+            one:
+              status: 'running'
+              commit: '1'
+              repo: 'name2'
+        surveyor.getManifest (errs) ->
+          throw errs if errs?
+          assert model.kill[rand1].one
+          clearTimeout model.kill[rand1].one
+          model.kill = {}
+          done()
 describe 'prevCommit', ->
   after ->
     fs.unlinkSync './manifest/test_3.json'
