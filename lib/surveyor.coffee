@@ -107,6 +107,22 @@ Surveyor = ->
             running++ if procData.repo is repo and procData.status is 'running' and procData.commit is repoData.opts.commit
         repoData.delta = repoData.instances - running
     cb()
+  @markHealthy = (cb) ->
+    return cb null if Object.keys(model.manifest).length is 0
+    counter = 0
+    for repo, repoData of model.manifest
+      if (!repoData.required or repoData.required.length is 0) and (!repoData.delta or repoData.delta is 0)
+        counter++
+        do (repo, repoData) ->
+          model.serviceInfo.get repo, (err, info) ->
+            info = {healthyCommits: {}} if !info?
+            info.healthyCommits[repoData.opts.commit] = true
+            model.serviceInfo.put repo, info, (err) ->
+              counter--
+              return cb err if err?
+              return cb null if counter is 0
+    return cb null if counter is 0
+
   @sortSlaves = (slaves) ->
     ([k, v.load] for k, v of slaves or model.slaves).sort (a,b) ->
       a[1] - b[1]

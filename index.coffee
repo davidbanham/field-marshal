@@ -18,11 +18,13 @@ check = ->
   surveyor.getManifest (err) ->
     throw new Error err if err?
     surveyor.buildRequired ->
-      surveyor.spawnMissing (err, procs) ->
-        lock = false
-        clearTimeout lockTimer
-        return console.error err, procs if err?
-        console.log "spawned", procs if Object.keys(procs).length isnt 0
+      surveyor.markHealthy (err) ->
+        throw err if err?
+        surveyor.spawnMissing (err, procs) ->
+          lock = false
+          clearTimeout lockTimer
+          return console.error err, procs if err?
+          console.log "spawned", procs if Object.keys(procs).length isnt 0
 
 route = ->
   surveyor.calculateRoutingTable (err, table) ->

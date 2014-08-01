@@ -110,7 +110,7 @@ describe "surveyor.getManifest", ->
               ]
           done()
 
-  it 'should cut over routing once the new commit is healthy', (done) ->
+  it 'should rut over routing once the new commit is healthy', (done) ->
     rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
     model.slaves = {}
     model.slaves[rand1] =
@@ -302,6 +302,46 @@ describe "surveyor", ->
       assert.deepEqual model.manifest.a.required, [rand2]
       assert.equal model.manifest.b.delta, 1
       done()
+
+  it 'should mark a commit as healthy if it has been fully deployed', (done) ->
+    rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    rand2 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    model.manifest[rand1] =
+      instances: '*'
+      opts:
+        commit: '1'
+    model.manifest[rand2] =
+      instances: 3
+      opts:
+        commit: '2'
+    surveyor.markHealthy ->
+      model.serviceInfo.get rand1, (err, info) ->
+        assert.deepEqual err, null, 'star instances failed'
+        assert info.healthyCommits['1'], 'star instances failed'
+        model.serviceInfo.get rand2, (err, info) ->
+          assert.deepEqual err, null, 'numbered instances failed'
+          assert info.healthyCommits['2'], 'numbered instances failed'
+          done()
+
+  it 'should not mark a commit as healthy if it has not been fully deployed', (done) ->
+    rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    rand2 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    model.manifest[rand1] =
+      instances: '*'
+      required: ['slave1']
+    model.manifest[rand2] =
+      instances: 3
+      delta: 1
+    model.serviceInfo.put rand1, {healthyCommits: {'foo': true}}, ->
+      model.serviceInfo.put rand2, {healthyCommits: {'foo': true}}, ->
+        surveyor.markHealthy ->
+          model.serviceInfo.get rand1, (err, info) ->
+            assert.deepEqual err, null
+            assert.deepEqual info.healthyCommits['1'], undefined
+            model.serviceInfo.get rand2, (err, info) ->
+              assert.deepEqual err, null, 'numbered instances failed'
+              assert.deepEqual info.healthyCommits['2'], undefined
+              done()
 
   it 'should not include unspawnable slaves in buildRequired', (done) ->
     rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
