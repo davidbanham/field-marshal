@@ -74,7 +74,6 @@ Surveyor = ->
                 if data.opts.commit isnt model.manifest[item].opts.commit
                   model.prevCommits.put item, model.manifest[item].opts.commit
             frozenManifest = JSON.parse JSON.stringify model.manifest
-            @checkStale frozenManifest, manifest
           #Load in the fresh manifest and we're done
           model.manifest = manifest
           cb errs
