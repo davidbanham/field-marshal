@@ -264,6 +264,7 @@ Surveyor = ->
     return cb() if Object.keys(manifest).length is 0
     kill = (slave, pid, proc) ->
       model.serviceInfo.get proc.repo, (err, info) ->
+        return if err or !info
         return if !info.healthyCommits[manifest[proc.repo].opts.commit] #current commit is not healthy
         return if model.kill and model.kill[slave] and model.kill[slave][pid]? #pid is already scheduled for destruction
         model.kill = {} if !model.kill?

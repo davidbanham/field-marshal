@@ -1,4 +1,6 @@
 assert = require 'assert'
+levelup = require 'level'
+rimraf = require 'rimraf'
 surveyor = require '../lib/surveyor'
 model = require '../lib/model'
 util = require '../lib/util.coffee'
@@ -7,6 +9,10 @@ http = require 'http'
 server = http.createServer()
 
 describe "surveyor.getManifest", ->
+  before ->
+    model.latestCommits = levelup './test_commits.db'
+    model.prevCommits = levelup './test_prevCommits.db'
+    model.serviceInfo = levelup './test_serviceInfo.db', {valueEncoding: 'json'}
   beforeEach ->
     try
       fs.mkdirSync './manifest'
@@ -25,6 +31,11 @@ describe "surveyor.getManifest", ->
     fs.unlinkSync './manifest/test_2.json'
     model.manifest = {}
     model.slaves = {}
+
+  after ->
+    rimraf.sync './test_commits.db'
+    rimraf.sync './test_prevCommits.db'
+    rimraf.sync './test_serviceInfo.db'
   it 'should concatenate all json files in a dir into one manifest', (done) ->
     surveyor.getManifest (err) ->
       assert.equal err, null
@@ -65,13 +76,14 @@ describe "surveyor.getManifest", ->
         killable: true
         opts:
           commit: '2'
-    surveyor.checkStale manifest, ->
-      setTimeout ->
-        assert model.kill[rand1].one
-        clearTimeout model.kill[rand1].one
-        model.kill = {}
-        done()
-      , 10
+    model.serviceInfo.put 'a', {healthyCommits: {'2': true}}, ->
+      surveyor.checkStale manifest, ->
+        setTimeout ->
+          assert model.kill[rand1].one
+          clearTimeout model.kill[rand1].one
+          model.kill = {}
+          done()
+        , 10
   it 'should prune jobs once the next commit is healthy', (done) ->
     rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
     model.slaves[rand1] =
