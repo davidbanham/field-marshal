@@ -74,7 +74,7 @@ Surveyor = ->
                 if data.opts.commit isnt model.manifest[item].opts.commit
                   model.prevCommits.put item, model.manifest[item].opts.commit
             frozenManifest = JSON.parse JSON.stringify model.manifest
-            @checkStale frozenManifest, manifest, ->
+            @checkStale manifest, ->
               model.manifest = manifest
               cb errs
           else
@@ -260,36 +260,24 @@ Surveyor = ->
       continue if !model.manifest[proc.repo]?
       load += model.manifest[proc.repo].load
     return load
-  @checkStale = (oldManifest, newManifest, cb = ->) ->
+  @checkStale = (manifest, cb = ->) ->
+    return cb() if Object.keys(manifest).length is 0
     kill = (slave, pid, proc) ->
-      model.kill = {} if !model.kill?
-      model.kill[slave] = {} if !model.kill[slave]?
-      model.kill[slave][pid] =
-        setTimeout ->
-          cavalry.stop slave, [pid], (err) ->
-            return console.error "Error stopping pid #{pid} on slave #{slave}", err if err?
-        , oldManifest[proc.repo].killTimeout or 300000 # 5 minutes
-    findStalePids = (name, repo) ->
-      for slave, data of model.slaves
-        for pid, proc of data.processes
-          kill slave, pid, proc if proc.commit is repo.opts.commit and repo.killable
-    checkDone = ->
-      return cb() if counter is 0
-    counter = 0
-    return checkDone() if Object.keys(oldManifest).length is 0
-    for name, repo of oldManifest
-      counter++
-      do (name, repo) ->
-        model.serviceInfo.get name, (err, info) ->
-          counter--
-          return checkDone() if !info?
-          return checkDone() if !info.healthyCommits[newManifest[name].opts.commit]
-          findStalePids name, repo if !newManifest[name]?
-          matched = false
-          for newName, newRepo of newManifest
-            matched = true if newRepo.opts.commit is repo.opts.commit and name is newName
-          findStalePids name, repo unless matched
-          checkDone()
+      model.serviceInfo.get proc.repo, (err, info) ->
+        return if !info.healthyCommits[manifest[proc.repo].opts.commit] #current commit is not healthy
+        return if model.kill and model.kill[slave] and model.kill[slave][pid]? #pid is already scheduled for destruction
+        model.kill = {} if !model.kill?
+        model.kill[slave] = {} if !model.kill[slave]?
+        model.kill[slave][pid] =
+          setTimeout ->
+            cavalry.stop slave, [pid], (err) ->
+              return console.error "Error stopping pid #{pid} on slave #{slave}", err if err?
+          , manifest[proc.repo].killTimeout or 300000 # 5 minutes
+    for slave, data of model.slaves
+      for pid, proc of data.processes
+        repo = manifest[proc.repo]
+        kill slave, pid, proc if (proc.commit isnt repo.opts.commit) and repo.killable
+    cb()
 
   return this
 
