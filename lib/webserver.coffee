@@ -4,6 +4,7 @@ model = require('../lib/model')
 gitter = require '../lib/gitter'
 cavalry = require '../lib/cavalry'
 util = require '../lib/util'
+manifesto = require '../lib/manifesto'
 
 server = http.createServer()
 
@@ -57,6 +58,14 @@ server.on 'request', (req, res) ->
     when "/manifest"
       res.setHeader "Content-Type", "application/json"
       res.end JSON.stringify model.manifest
+    when "/manifestFile"
+      getJSON req, (err, manifestFile) ->
+        errs = manifesto.validate manifestFile.manifest
+        return respondJSONerr JSON.stringify(errs), res if errs?
+        manifesto.write manifestFile, (err) ->
+          return respondJSONerr err, res if err?
+          res.end()
+
     when "/stop"
       #Should there should be logic here (or elsewhere) to send the right PIDs to the right slaves?
       getJSON req, (err, opts) ->

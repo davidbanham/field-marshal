@@ -1,5 +1,10 @@
 assert = require 'assert'
 request = require 'request'
+mkdirp = require 'mkdirp'
+rimraf = require 'rimraf'
+fs = require 'fs'
+path = require 'path'
+manifesto = require '../lib/manifesto.coffee'
 webserver = require "../lib/webserver.coffee"
 model = require("../lib/model.coffee")
 util = require "../lib/util.coffee"
@@ -69,3 +74,43 @@ describe "webserver", ->
       assert.equal body, util.apiVersion
       done()
     .auth "user", "testingpass"
+  describe 'manifest', ->
+    rand = Math.floor(Math.random() * (1 << 24)).toString(16)
+    testFolder = "./#{rand}"
+    beforeEach ->
+      mkdirp.sync testFolder
+      manifesto.manifestDir = testFolder
+    afterEach ->
+      rimraf.sync testFolder
+    it 'should accept a new manifestFile', (done) ->
+      manifestFile =
+        file: Math.floor(Math.random() * (1 << 24)).toString(16) + '.json'
+        manifest:
+          test1:
+            instances: '1'
+            load: 1
+            routing:
+              domain: 'example.com'
+            opts:
+              setup: [ 'npm', 'install', '--production' ]
+              command:  ['node', 'index.js' ]
+              commit: 'LATEST'
+              env:
+                PORT: 'RANDOM_PORT'
+      request uri: "http://localhost:4001/manifestFile", json: manifestFile, (err, res, body) ->
+        assert.equal res.statusCode, 200
+        assert fs.existsSync path.join testFolder, manifestFile.file
+        done()
+      .auth "user", "testingpass"
+
+    it 'should return a 400 if the manifest is invalid', (done) ->
+      manifestFile =
+        file: Math.floor(Math.random() * (1 << 24)).toString(16) + '.json'
+        manifest:
+          test1:
+            instances: '1'
+      request uri: "http://localhost:4001/manifestFile", json: manifestFile, (err, res, body) ->
+        assert.equal res.statusCode, 400
+        assert !fs.existsSync path.join testFolder, manifestFile.file
+        done()
+      .auth "user", "testingpass"
