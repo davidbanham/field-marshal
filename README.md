@@ -1,30 +1,32 @@
 # Field Marshal
 
-Field-Marshal is an open source, simple, private PaaS you can run yourself.
+Field-Marshal is an open source, simple, private [PaaS](https://en.wikipedia.org/wiki/Platform_as_a_service) you can run yourself. It's a lot like Heroku, but it runs on your own computers. These might be machines in a datacentre, or they might be AWS instances. It's up to you.
 
-Field Marshal is designed to work with [Cavalry](https://github.com/davidbanham/cavalry) and is a rewrite of [Rear Admiral](https://github.com/PinionTech/rear-admiral).
+Field Marshal is designed to make it easier to manage Service Oriented Architectures in the wild. It's born out of years of experince running and administering SOAs with other tools.
+
+Field Marshal is an SOA itself. All components speak to each other via a well-defined API, so you're free to replace bits if you like. Field Marshal is designed to work with [Cavalry](https://github.com/davidbanham/cavalry), which does the work of routing the web requests and runing the proceses. One Field Marshal instance controls many Cavalry instances.
 
 You may also be interested in [Quartermaster](https://github.com/davidbanham/quartermaster), which is a graphical administration tool.
+
+The way it works is:
 
 1. You run one or more Cavalry slaves on different servers.
 2. You git push your code to Field-Marshal.
 3. You tell Field-Marshal how many of each of your services you want to run, how they should be started, and where people look for them.
 
-Field-Marshal takes care of the rest, routing the http traffic, respawning instances if they die, re-allocating the jobs if a slave goes down.
+Field-Marshal takes care of the rest, getting the code to the slaves, setting up the code, routing the http traffic, respawning instances if they die, re-allocating the jobs if a slave goes down.
+
+You can hear me talk about the way Field Marshal works [on youtube](https://www.youtube.com/watch?v=l6VHqIXoNv0). This is a recording of a presentation I gave at a nodeJS user group in Sydney.
 
 [![Build Status](https://travis-ci.org/davidbanham/field-marshal.png?branch=master)](https://travis-ci.org/davidbanham/field-marshal)
+
+#In the wild
+
+The biggest installation of Field Marshal to date is at [Pinion](http://pinion.gg). The cluster there serves around 10k requests per minute across various different services.
 
 #Getting Involved
 
 I ❤ pull requests. Feel free to log a github issue if there's something you'd like.
-
-I'm also trying out tracking this project on Trello. Trello is rad, and we use it a lot at work, but I've never tracked a public project like this on it before. Maybe it will be great!
-
-[Field Marshal on Trello](https://trello.com/b/hPBd5r5T)
-
-If you don't already have a Trello account, and you sign up via this link, I'll get a free month of Trello Gold. I think it will also make Joel Spolsky love me. So that's nice.
-
-[Make Joel Spolsky Love Dave](https://trello.com/davidbanham/recommend)
 
 #Installation
 
