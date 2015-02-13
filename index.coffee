@@ -8,6 +8,7 @@ model = require './lib/model.coffee'
 lock = false
 lockTimer = null
 lockTimeout = process.env.LOCKTIMEOUT or 30 * 1000
+lockTimeout = parseInt lockTimeout
 
 check = ->
   return if lock
