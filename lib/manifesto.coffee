@@ -17,7 +17,7 @@ schemas =
         required: false
         items:
           type: 'string'
-      location_arguments:
+      location_arguments: #This is poorly named. These are also directives. We should probably have a directives hash with location and server properties as arrays.
         type: 'array'
         required: false
         items:
