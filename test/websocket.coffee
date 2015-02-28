@@ -161,4 +161,4 @@ describe "websocket", ->
       setTimeout ->
         assert.equal model.slaves.apiVersionTest.spawnable, false
         done()
-      , 1
+      , 4
