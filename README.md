@@ -90,6 +90,8 @@ Variables of note are:
 - routing: These are passed through to the nginx routing layer.
   - domain: The fqdn that requests to this process will be directed at. Allows nginx to proxy the request to the right place.
   - method: The method nginx should use to allocate requests to upstream servers. Defaults to least_conn. Info here: http://wiki.nginx.org/HttpUpstreamModule#Directives
+  - location_arguments: An array of instructions for the location stanza (like proxy_buffering off)
+  - directives: An array of instructions for the server stanza (like real_ip_header X-Forwarded-For)
 - env: Any environment variables you want to be in place when Cavalry executes the process
   - PORT: Port is required for the nginx routing layer to know where to send requests. Substituting the string 'RANDOM_PORT' will choose a free port on the system between 8000 and 9000.
 
