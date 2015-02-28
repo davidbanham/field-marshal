@@ -12,6 +12,16 @@ schemas =
     properties:
       domain:
         type: 'string', required: true
+      directives:
+        type: 'array'
+        required: false
+        items:
+          type: 'string'
+      location_arguments:
+        type: 'array'
+        required: false
+        items:
+          type: 'string'
   opts:
     id: '/Opts'
     type: 'object'
