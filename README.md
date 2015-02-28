@@ -92,6 +92,7 @@ Variables of note are:
   - method: The method nginx should use to allocate requests to upstream servers. Defaults to least_conn. Info here: http://wiki.nginx.org/HttpUpstreamModule#Directives
   - location_arguments: An array of instructions for the location stanza (like proxy_buffering off)
   - directives: An array of instructions for the server stanza (like real_ip_header X-Forwarded-For)
+  - maintenance_mode_upgrades: Tells the process runner not to do zero-downtime deploys, but instead to serve a 503 until the new commit is marked healthy
 - env: Any environment variables you want to be in place when Cavalry executes the process
   - PORT: Port is required for the nginx routing layer to know where to send requests. Substituting the string 'RANDOM_PORT' will choose a free port on the system between 8000 and 9000.
 
