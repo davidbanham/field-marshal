@@ -249,11 +249,10 @@ describe "surveyor.getManifest", ->
         killable: true
         opts:
           commit: '2'
+        routing:
           maintenance_mode_upgrades: true
     model.prevCommits.put 'a', '1', ->
       model.serviceInfo.put 'a', {healthyCommits: {'1': true}}, ->
-
-        model.manifest.a.maintenance_mode_upgrades = true
 
         surveyor.calculateRoutingTable (err, routes) ->
           console.log routes
@@ -286,8 +285,9 @@ describe "surveyor.getManifest", ->
         instances: 2
         killable: true
         opts:
-          maintenance_mode_upgrades: true
           commit: '2'
+        routing:
+          maintenance_mode_upgrades: true
     model.prevCommits.put 'a', '1', ->
       model.serviceInfo.put 'a', {healthyCommits: {'1': true}}, ->
         surveyor.calculateRoutingTable (err, routes) ->

@@ -22,6 +22,8 @@ schemas =
         required: false
         items:
           type: 'string'
+      maintenance_mode_upgrades:
+        type: 'boolean', required: false
   opts:
     id: '/Opts'
     type: 'object'
@@ -40,8 +42,6 @@ schemas =
         type: 'string', required: true
       env:
         type: 'object', required: true
-      maintenance_mode_upgrades:
-        type: 'boolean', required: false
   manifest:
     id: '/Manifest'
     type: 'object'

@@ -239,7 +239,7 @@ Surveyor = ->
             routes[service.repo].maintenance = false
 
             if (err && err.message is 'latest commit not healthy')
-              if model.manifest[service.repo].opts.maintenance_mode_upgrades
+              if model.manifest[service.repo].routing?.maintenance_mode_upgrades
                 routes[service.repo].maintenance = true
 
 
