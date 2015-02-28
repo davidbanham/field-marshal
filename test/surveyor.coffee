@@ -157,6 +157,7 @@ describe "surveyor.getManifest", ->
           assert.deepEqual err, null
           assert.deepEqual routes,
             a:
+              maintenance: false
               routes: [
                 {
                   host: 'example.com'
@@ -209,6 +210,138 @@ describe "surveyor.getManifest", ->
           assert.deepEqual err, null
           assert.deepEqual routes,
             a:
+              maintenance: false
+              routes:[
+                {
+                  host: 'example.com'
+                  port: 2015
+                }
+                {
+                  host: 'example.com'
+                  port: 2016
+                }
+              ]
+          done()
+
+  it 'should set maintenance mode if the next commit is not healthy', (done) ->
+    rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    model.slaves = {}
+    model.slaves[rand1] =
+      ip: 'example.com'
+      processes:
+        pidone:
+          status: 'running'
+          commit: '1'
+          repo: 'a'
+        pidtwo:
+          status: 'running'
+          commit: '2'
+          repo: 'a'
+    model.portMap = {}
+    model.portMap[rand1] =
+      pidone:
+        repo: 'a'
+        port: 2014
+        commit: '1'
+    model.manifest =
+      a:
+        instances: 2
+        killable: true
+        opts:
+          commit: '2'
+          maintenance_mode_upgrades: true
+    model.prevCommits.put 'a', '1', ->
+      model.serviceInfo.put 'a', {healthyCommits: {'1': true}}, ->
+
+        model.manifest.a.maintenance_mode_upgrades = true
+
+        surveyor.calculateRoutingTable (err, routes) ->
+          console.log routes
+          assert routes.a
+          assert routes.a.maintenance
+          done()
+
+  it 'should not clear the routes table when setting maintenance mode', (done) ->
+    rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    model.slaves = {}
+    model.slaves[rand1] =
+      ip: 'example.com'
+      processes:
+        pidone:
+          status: 'running'
+          commit: '1'
+          repo: 'a'
+        pidtwo:
+          status: 'running'
+          commit: '2'
+          repo: 'a'
+    model.portMap = {}
+    model.portMap[rand1] =
+      pidone:
+        repo: 'a'
+        port: 2014
+        commit: '1'
+    model.manifest =
+      a:
+        instances: 2
+        killable: true
+        opts:
+          maintenance_mode_upgrades: true
+          commit: '2'
+    model.prevCommits.put 'a', '1', ->
+      model.serviceInfo.put 'a', {healthyCommits: {'1': true}}, ->
+        surveyor.calculateRoutingTable (err, routes) ->
+          assert.deepEqual err, null
+          assert routes.a
+          assert routes.a.maintenance
+
+          done()
+
+  it 'should set maintenance to false when new commit is healthy', (done) ->
+    rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    model.slaves = {}
+    model.slaves[rand1] =
+      ip: 'example.com'
+      processes:
+        pidone:
+          status: 'running'
+          commit: '1'
+          repo: 'a'
+        pidtwo:
+          status: 'running'
+          commit: '2'
+          repo: 'a'
+        pidthree:
+          status: 'running'
+          commit: '2'
+          repo: 'a'
+    model.portMap = {}
+    model.portMap[rand1] =
+      pidone:
+        repo: 'a'
+        port: 2014
+        commit: '1'
+      pidtwo:
+        repo: 'a'
+        port: 2015
+        commit: '2'
+      pidthree:
+        repo: 'a'
+        port: 2016
+        commit: '2'
+    model.manifest =
+      a:
+        instances: 2
+        killable: true
+        opts:
+          commit: '2'
+    model.prevCommits.put 'a', '1', ->
+      model.serviceInfo.put 'a', {healthyCommits: {'2': true, '1': true}}, ->
+        surveyor.calculateRoutingTable (err, routes) ->
+          assert.deepEqual err, null
+          assert.deepEqual routes,
+            a:
+              maintenance: false
               routes:[
                 {
                   host: 'example.com'
@@ -576,11 +709,13 @@ describe "surveyor", ->
         surveyor.calculateRoutingTable (err, table) ->
           assert.deepEqual table,
             test1:
+              maintenance: false
               routes: [
                 {host: "127.0.0.1", port: "8000"}
                 {host: "127.0.0.2", port: "8000"}
               ]
             test2:
+              maintenance: false
               routes: [
                 {host: "127.0.0.1", port: "8001"}
                 {host: "127.0.0.2", port: "8001"}
@@ -634,11 +769,13 @@ describe "surveyor", ->
     surveyor.calculateRoutingTable (err, table) ->
       assert.deepEqual table,
         test1:
+          maintenance: false
           routes: [
             {host: "127.0.0.1", port: 8000}
             {host: "127.0.0.2", port: 8000}
           ]
         test2:
+          maintenance: false
           routes: [
             {host: "127.0.0.2", port: 8001}
           ]

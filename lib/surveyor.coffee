@@ -211,15 +211,18 @@ Surveyor = ->
       else
         model.prevCommits.get service.repo, (err, prevCommit) ->
           targetCommit = prevCommit
-          return cb null, targetCommit
+          return cb new Error('latest commit not healthy'), targetCommit
 
   @calculateRoutingTable = (cb) ->
     return cb new Error "manifest not ready" unless model.manifest?
     routes = {}
     counter = 0
+
     checkDone = ->
       return cb null, routes if counter is 0
+
     return cb null, routes if Object.keys(model.portMap).length is 0
+
     for name, slave of model.portMap
       for pid, service of slave
         continue if !model.manifest[service.repo]? #Bail if a listen process is no longer present in the manifest
@@ -229,9 +232,17 @@ Surveyor = ->
           @decideHealthyCommit service, (err, targetCommit) ->
             counter--
 
-            return checkDone() if service.commit isnt targetCommit
+            if service.commit isnt targetCommit
+              return checkDone()
 
             routes[service.repo] ?= {}
+            routes[service.repo].maintenance = false
+
+            if (err && err.message is 'latest commit not healthy')
+              if model.manifest[service.repo].opts.maintenance_mode_upgrades
+                routes[service.repo].maintenance = true
+
+
             #read in all the options like routing method
             for k, v of model.manifest[service.repo].routing
               routes[service.repo][k] = v

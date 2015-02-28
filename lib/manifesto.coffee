@@ -30,6 +30,8 @@ schemas =
         type: 'string', required: true
       env:
         type: 'object', required: true
+      maintenance_mode_upgrades:
+        type: 'boolean', required: false
   manifest:
     id: '/Manifest'
     type: 'object'

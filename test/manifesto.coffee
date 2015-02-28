@@ -18,6 +18,7 @@ test1 =
       setup: [ 'npm', 'install', '--production' ]
       command:  ['node', 'index.js' ]
       commit: 'LATEST'
+      maintenance_mode_upgrades: false
       env:
         PORT: 'RANDOM_PORT'
 
