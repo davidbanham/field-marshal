@@ -58,7 +58,8 @@ describe "surveyor.getManifest", ->
       fs.unlinkSync './manifest/test_malformed.json'
       for error in err
         if error.file is "test_malformed.json"
-          done() if error.error.type is "unexpected_token"
+          assert.deepEqual error.error, new Error 'SyntaxError: Unexpected token l'
+          done()
   it 'should prune jobs no longer in the manifest', (done) ->
     rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
     model.slaves[rand1] =
