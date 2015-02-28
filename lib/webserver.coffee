@@ -27,7 +27,7 @@ respondJSONerr = (err, res) ->
 
 server.on 'request', (req, res) ->
   res.setHeader "Access-Control-Allow-Origin", "*"
-  res.setHeader "Access-Control-Allow-Headers", req.headers["access-control-request-headers"]
+  res.setHeader "Access-Control-Allow-Headers", req.headers["access-control-request-headers"] || ""
   if req.method is 'OPTIONS'
     return res.end()
   if !req.headers.authorization?
