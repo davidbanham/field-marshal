@@ -221,7 +221,7 @@ Surveyor = ->
     checkDone = ->
       return cb null, routes if counter is 0
 
-    return cb null, routes if Object.keys(model.portMap).length is 0
+    return cb null, routes if !model.portMap or Object.keys(model.portMap).length is 0
 
     for name, slave of model.portMap
       for pid, service of slave
