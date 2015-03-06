@@ -10,7 +10,7 @@ fs = require 'fs'
 server = http.createServer()
 
 describe "gitter", ->
-  this.timeout 6000
+  this.timeout 30000
   before (done) ->
     server.listen 3000
     webserver.listen 7000, ->
