@@ -255,7 +255,6 @@ describe "surveyor.getManifest", ->
       model.serviceInfo.put 'a', {healthyCommits: {'1': true}}, ->
 
         surveyor.calculateRoutingTable (err, routes) ->
-          console.log routes
           assert routes.a
           assert routes.a.maintenance
           done()
