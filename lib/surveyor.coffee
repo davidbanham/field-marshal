@@ -48,6 +48,10 @@ Surveyor = ->
           emitter.emit 'stanza', {name: name, data: data}
       emitter.on 'stanza', ({name, data}) =>
         @insertCommit name, data, (err, name, data) =>
+          if err?.message is "Key not found in database [#{name}]"
+            console.error "Manifest item: #{name} has no commit information"
+            numStanzas--
+            return emitter.emit 'stanzaComplete'
           throw err if err?
           @checkDuplicateName name, data, manifest, (err, name, data) ->
             emitter.emit 'duplicateErr', {err: err, name: name, data: data} if err?

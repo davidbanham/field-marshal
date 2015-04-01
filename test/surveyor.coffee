@@ -438,6 +438,9 @@ describe "surveyor", ->
     server.listen 3000
   afterEach ->
     server.removeAllListeners "request"
+    try
+      fs.unlinkSync './manifest/test_4.json'
+    catch e
     server.close()
   it 'should ps all drones', (done) ->
     rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
@@ -860,6 +863,17 @@ describe "surveyor", ->
         assert.equal err, null
         assert.equal data.opts.commit, "I don't know, like a sha or something?"
         done()
+  it 'should should not explode if handed a repo with no commit data', (done) ->
+    name = Math.floor(Math.random() * (1 << 24)).toString(16)
+    manifest = {}
+    manifest[name] =
+      instances: 3
+      opts:
+        commit: 'LATEST'
+    fs.writeFileSync "./manifest/test_4.json", JSON.stringify manifest
+    surveyor.getManifest (errs) ->
+      assert !errs
+      done()
   it 'should filter to only spawnable slaves', ->
     model.slaves['spawn1'] = { ip: '127.0.0.1', load: 3, spawnable: true }
     model.slaves['spawn2'] = { ip: '127.0.0.1', load: 1, spawnable: true }
