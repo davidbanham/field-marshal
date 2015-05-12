@@ -113,7 +113,7 @@ Surveyor = ->
           for pid, procData of slaveData.processes
             running++ if procData.repo is repo and procData.status is 'running' and procData.commit is repoData.opts.commit
         repoData.delta = repoData.instances - running
-    cb()
+    @checkStale model.manifest, cb
   @markHealthy = (cb) ->
     return cb null if Object.keys(model.manifest).length is 0
     counter = 0
@@ -292,6 +292,7 @@ Surveyor = ->
     for slave, data of model.slaves
       for pid, proc of data.processes
         repo = manifest[proc.repo]
+        continue if !repo
         kill slave, pid, proc if (proc.commit isnt repo.opts.commit) and repo.killable
         if repo.prunable and repo.delta < 0
           kill slave, pid, proc, 100
