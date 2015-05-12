@@ -78,7 +78,10 @@ The manifest is one or more JSON files in the manifest directory. An example is:
           "commit": "8b7243393950e0209c7a9346e9a1a839b99619d9",
           "env": {
             "PORT": "RANDOM_PORT"
-          }
+          },
+          killable: false,
+          killTimeout: 300000,
+          prunable: false
         }
       }
     }
@@ -95,6 +98,9 @@ Variables of note are:
   - maintenance_mode_upgrades: Tells the process runner not to do zero-downtime deploys, but instead to serve a 503 until the new commit is marked healthy
 - env: Any environment variables you want to be in place when Cavalry executes the process
   - PORT: Port is required for the nginx routing layer to know where to send requests. Substituting the string 'RANDOM_PORT' will choose a free port on the system between 8000 and 9000.
+- killable: Defaults to false if undefined. This informs the behaviour of Field Marshal when a new commit is pushed. It answers the question "Once I have deployed a new commit and confirmed that it's all healthy, am I allowed to kill the processes of the old commit?"
+- killTimeout: If the above is yes, how long should FM wait before sending the SIGTERM?
+- prunable: Defaults to false if undefined. Network partitions and slow installation phases can result in extra instances of a repo being run. If prunable = true, when this occurs FM will kill off the oldest instances of that repo until only the specified number of instances are running.
 
 #Getting your code into it
 
