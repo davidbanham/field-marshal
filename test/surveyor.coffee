@@ -405,6 +405,65 @@ describe "surveyor.getManifest", ->
             model.kill = {}
             done()
           , 10
+  it 'should prune jobs marked prunable with a negative delta', (done) ->
+    rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    rand2 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    console.log rand1, rand2
+    model.slaves[rand1] =
+      processes:
+        one:
+          status: 'running'
+          commit: '1'
+          repo: rand2
+        two:
+          status: 'running'
+          commit: '1'
+          repo: rand2
+    manifest = {}
+    manifest[rand2] =
+      instances: 1
+      prunable: true
+      delta: -1
+      opts:
+        commit: '1'
+    model.serviceInfo.put rand2, {healthyCommits: {'1': true}}, ->
+      surveyor.checkStale manifest, ->
+        setTimeout ->
+          assert.equal Object.keys(model.kill).length, 1
+          assert model.kill[rand1].one
+          clearTimeout model.kill[rand1].one
+          model.serviceInfo.del rand2
+          done()
+        , 10
+
+  it 'should not prune jobs not marked prunable with a negative delta', (done) ->
+    rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    rand2 = Math.floor(Math.random() * (1 << 24)).toString(16)
+    console.log rand1, rand2
+    model.slaves[rand1] =
+      processes:
+        one:
+          status: 'running'
+          commit: '1'
+          repo: rand2
+        two:
+          status: 'running'
+          commit: '1'
+          repo: rand2
+    manifest = {}
+    manifest[rand2] =
+      instances: 1
+      delta: -1
+      opts:
+        commit: '1'
+    model.serviceInfo.put rand2, {healthyCommits: {'1': true}}, ->
+      surveyor.checkStale manifest, ->
+        setTimeout ->
+          assert !model.kill?[rand1]
+          model.serviceInfo.del rand2
+          done()
+        , 10
+
 describe 'prevCommit', ->
   after ->
     fs.unlinkSync './manifest/test_3.json'

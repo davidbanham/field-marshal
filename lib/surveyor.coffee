@@ -277,7 +277,7 @@ Surveyor = ->
     return load
   @checkStale = (manifest, cb = ->) ->
     return cb() if Object.keys(manifest).length is 0
-    kill = (slave, pid, proc) ->
+    kill = (slave, pid, proc, timeout) ->
       model.serviceInfo.get proc.repo, (err, info) ->
         return if err or !info
         return if !info.healthyCommits[manifest[proc.repo].opts.commit] #current commit is not healthy
@@ -288,11 +288,14 @@ Surveyor = ->
           setTimeout ->
             cavalry.stop slave, [pid], (err) ->
               return console.error "Error stopping pid #{pid} on slave #{slave}", err if err?
-          , manifest[proc.repo].killTimeout or 300000 # 5 minutes
+          , manifest[proc.repo].killTimeout or timeout or 300000 # 5 minutes
     for slave, data of model.slaves
       for pid, proc of data.processes
         repo = manifest[proc.repo]
         kill slave, pid, proc if (proc.commit isnt repo.opts.commit) and repo.killable
+        if repo.prunable and repo.delta < 0
+          kill slave, pid, proc, 100
+          repo.delta++
     cb()
 
   return this
