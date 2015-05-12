@@ -408,7 +408,6 @@ describe "surveyor.getManifest", ->
   it 'should prune jobs marked prunable with a negative delta', (done) ->
     rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
     rand2 = Math.floor(Math.random() * (1 << 24)).toString(16)
-    console.log rand1, rand2
     model.slaves[rand1] =
       processes:
         one:
@@ -439,7 +438,6 @@ describe "surveyor.getManifest", ->
   it 'should not prune jobs not marked prunable with a negative delta', (done) ->
     rand1 = Math.floor(Math.random() * (1 << 24)).toString(16)
     rand2 = Math.floor(Math.random() * (1 << 24)).toString(16)
-    console.log rand1, rand2
     model.slaves[rand1] =
       processes:
         one:
