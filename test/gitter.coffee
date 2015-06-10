@@ -40,7 +40,7 @@ describe "gitter", ->
     shaChecker = spawn 'git', ['log', 'master', '-n', '1']
     shaChecker.stdout.on 'data', (buf) ->
       targetSha = buf.toString().split('\n')[0].split(' ')[1]
-      gitter.repos.once 'push', () ->
+      push.on 'close', ->
         model.latestCommits.get rand, (err, sha) ->
           assert.equal sha, targetSha
           done()
@@ -54,7 +54,7 @@ describe "gitter", ->
     shaChecker = spawn 'git', ['log', 'master', '-n', '1']
     shaChecker.stdout.on 'data', (buf) ->
       targetSha = buf.toString().split('\n')[0].split(' ')[1]
-      gitter.repos.once 'push', () ->
+      push.on 'close', ->
         model.prevCommits.get rand, (err, prevCommit) ->
           assert.deepEqual err, null
           assert.equal prevCommit, 'totallyold'

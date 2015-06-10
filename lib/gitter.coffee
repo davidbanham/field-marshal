@@ -11,19 +11,20 @@ secret = process.env.SECRET or 'testingpass'
 
 repos.on 'push', (push) ->
   push.accept()
-  opts =
-    name: push.repo
-    commit: push.commit
-    url: "http://git:#{secret}@#{host}:#{port}/#{push.repo}"
-  model.latestCommits.put opts.name, opts.commit, (err) ->
-    throw err if err?
-  if model.manifest and model.manifest[opts.name]?
-    model.prevCommits.put opts.name, model.manifest[opts.name].opts.commit
-  for slave of model.slaves
-    do (slave) ->
-      cavalry.fetch slave, opts, (err, body) ->
-        console.error err if err?
-        console.error err if body?
+  push.on 'end', ->
+    opts =
+      name: push.repo
+      commit: push.commit
+      url: "http://git:#{secret}@#{host}:#{port}/#{push.repo}"
+    model.latestCommits.put opts.name, opts.commit, (err) ->
+      throw err if err?
+    if model.manifest and model.manifest[opts.name]?
+      model.prevCommits.put opts.name, model.manifest[opts.name].opts.commit
+    for slave of model.slaves
+      do (slave) ->
+        cavalry.fetch slave, opts, (err, body) ->
+          console.error err if err?
+          console.error err if body?
 
 module.exports =
   handle: (req, res) ->
