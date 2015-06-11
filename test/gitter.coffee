@@ -11,6 +11,8 @@ server = http.createServer()
 
 describe "gitter", ->
   this.timeout 30000
+  if process.env.TRAVIS
+    this.timeout 120000
   before (done) ->
     server.listen 3000
     webserver.listen 7000, ->
