@@ -54,6 +54,60 @@ describe "webserver", ->
       assert.deepEqual JSON.parse(body), model.slaves
       done()
     .auth "user", "testingpass"
+  it 'should filter stopped processes from the slave list if filterStopped is true', (done) ->
+    model.slaves =
+      slave1:
+        ip: "127.0.0.1"
+        spawnable: true
+        apiVersion: util.apiVersion
+        processes:
+          pid1:
+            id: "pid1"
+            status: "running"
+            repo: "test1"
+            opts:
+              commit: "1"
+              env:
+                PORT: 3008
+          pid2:
+            id: "pid2"
+            status: "stopped"
+            repo: "test1"
+            opts:
+              commit: "1"
+              env:
+                PORT: 3008
+    request.get "http://localhost:4001/slaves?filterStopped=true", (err, res, body) ->
+      assert !(JSON.parse(body).slave1.processes.pid2)
+      done()
+    .auth "user", "testingpass"
+  it 'should not filter stopped processes from the slave list if filterStopped is not true', (done) ->
+    model.slaves =
+      slave1:
+        ip: "127.0.0.1"
+        spawnable: true
+        apiVersion: util.apiVersion
+        processes:
+          pid1:
+            id: "pid1"
+            status: "running"
+            repo: "test1"
+            opts:
+              commit: "1"
+              env:
+                PORT: 3008
+          pid2:
+            id: "pid2"
+            status: "stopped"
+            repo: "test1"
+            opts:
+              commit: "1"
+              env:
+                PORT: 3008
+    request.get "http://localhost:4001/slaves", (err, res, body) ->
+      assert JSON.parse(body).slave1.processes.pid2
+      done()
+    .auth "user", "testingpass"
   it 'should return the manifest', (done) ->
     model.manifest =
       a:

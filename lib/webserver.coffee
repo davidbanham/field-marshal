@@ -50,10 +50,15 @@ server.on 'request', (req, res) ->
       for name, slave of model.slaves
         slaves[name] =
           ip: slave.ip
-          processes: slave.processes
+          processes: {}
           load: slave.load
           spawnable: slave.spawnable
           apiVersion: slave.apiVersion
+        if parsed.query?.filterStopped
+          for pid, process of slave.processes
+            slaves[name].processes[pid] = process if process.status isnt 'stopped'
+        else
+          slaves[name].processes = slave.processes
       res.end JSON.stringify slaves
     when "/manifest"
       res.setHeader "Content-Type", "application/json"
