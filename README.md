@@ -4,7 +4,7 @@ Field-Marshal is an open source, simple, private [PaaS](https://en.wikipedia.org
 
 Field Marshal is designed to make it easier to manage Service Oriented Architectures in the wild. It's born out of years of experince running and administering SOAs with other tools.
 
-Field Marshal is an SOA itself. All components speak to each other via a well-defined API, so you're free to replace bits if you like. Field Marshal is designed to work with [Cavalry](https://github.com/davidbanham/cavalry), which does the work of routing the web requests and runing the proceses. One Field Marshal instance controls many Cavalry instances.
+Field Marshal is an SOA itself. All components speak to each other via a well-defined API, so you're free to replace bits if you like. Field Marshal is designed to work with [Cavalry](https://github.com/davidbanham/cavalry), which does the work of routing the web requests and running the processes. One Field Marshal instance controls many Cavalry instances.
 
 You may also be interested in [Quartermaster](https://github.com/davidbanham/quartermaster), which is a graphical administration tool.
 
